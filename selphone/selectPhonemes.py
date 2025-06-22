@@ -13,13 +13,23 @@ def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
         curr_bin = curr_phone.getBin()
         curr_prob = curr_phone.getProb()
 
-        # Place (make consonants in current place more likely, and makes consonants in nearby places less likely)
+        # Get Bin Segments Helpful for Modding Probs
         sel_place = sel_bin % 32
         curr_place = curr_bin % 32
 
         sel_major_place = sel_bin % 8
         curr_major_place = curr_bin % 8
 
+        sel_son = (sel_bin >> 8) % 2
+        curr_son = (curr_bin >> 8) % 2
+
+        sel_manner = (sel_bin >> 8) % 8
+        curr_manner = (curr_bin >> 8) % 8
+
+        sel_suprs = (sel_bin >> 11) % 32
+        curr_suprs = (curr_bin >> 11) % 32
+
+        # Place (make consonants in current place more likely, and makes consonants in nearby places less likely)
         if sel_place != curr_place:
             curr_prob -= 0.001
 
@@ -27,19 +37,13 @@ def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
                 curr_prob -= 0.003
 
         # Laryngeal features
-        sel_son = (sel_bin >> 8) % 2
-        curr_son = (curr_bin >> 8) % 2
-
         curr_laryng = (curr_bin >> 5) % 8
-        if len(laryngs) >= 2 and not (curr_son == 1 and curr_laryng == 8):
+        if len(laryngs) >= 2 and not (curr_son == 1 or curr_laryng == 8):
 
             if curr_laryng not in laryngs:
                 curr_prob -= 0.06 * len(laryngs)
         
         # Manner
-        sel_manner = (sel_bin >> 8) % 8
-        curr_manner = (curr_bin >> 8) % 8
-
         if sel_manner != curr_manner:
             curr_prob -= 0.0007
 
@@ -50,9 +54,6 @@ def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
             curr_prob -= 0.1 * (num_types["nasals"] - 1)
 
         # Suprs/Coarts
-        sel_suprs = (sel_bin >> 11) % 32
-        curr_suprs = (curr_bin >> 11) % 32
-
         if sel_suprs != curr_suprs:
             curr_prob -= 0.1
 
@@ -87,12 +88,15 @@ def selectPhonemes(phonemes: PhonemeList, num_phones, temp):
 
         # Choose phonemes to select from
         head = phonemes.getHead()
-        min_prob = head.getProb() - (12 * temp)
+        tail = phonemes.getTail()
+
+        prob_range = abs(head.getProb() - tail.getProb())
+        min_prob = head.getProb() - (prob_range * temp)
 
         sel_phone_list = [head]
-        curr_phone = head
+        curr_phone = head.getNext()
 
-        while curr_phone.getProb() > min_prob:
+        while curr_phone.getProb() >= min_prob:
             sel_phone_list += [curr_phone]
             curr_phone = curr_phone.getNext()
 
