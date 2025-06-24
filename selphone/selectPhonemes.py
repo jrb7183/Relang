@@ -48,7 +48,7 @@ def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
             curr_prob -= 0.0007
 
             if sel_place == curr_place and sel_manner & 5 == 4 and curr_manner & 5 == 4: # Prevent occurrence of fricatives and sibilants of the same place
-                curr_prob -= 2
+                curr_prob -= 10
                 
         if sel_manner == 1 and curr_manner == 1: # Nasal
             curr_prob -= 0.1 * (num_types["nasals"] - 1)
@@ -58,7 +58,6 @@ def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
             curr_prob -= 0.1
 
         # Sonorance (If previous consonant was an obstruent, favor sonorants and vice versa)
-
         if sel_son == curr_son:
             if sel_son == 0: # Last consonant picked was an obstruent
                 curr_prob -= 0.001
