@@ -31,7 +31,7 @@ def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
         curr_son = (curr_bin >> 8) % 2
 
         curr_laryng = (curr_bin >> 5) % 8
-        if len(laryngs) >= 2 and not (curr_son == 1 and curr_laryng == 8):
+        if len(laryngs) >= 2 and not (curr_son == 1 or curr_laryng == 8):
 
             if curr_laryng not in laryngs:
                 curr_prob -= 0.06 * len(laryngs)
