@@ -31,7 +31,7 @@ def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
         curr_son = (curr_bin >> 8) % 2
 
         curr_laryng = (curr_bin >> 5) % 8
-        if len(laryngs) >= 2 and not (curr_son == 1 and curr_laryng == 8):
+        if len(laryngs) >= 2 and not (curr_son == 1 or curr_laryng == 8):
 
             if curr_laryng not in laryngs:
                 curr_prob -= 0.06 * len(laryngs)
@@ -87,12 +87,15 @@ def selectPhonemes(phonemes: PhonemeList, num_phones, temp):
 
         # Choose phonemes to select from
         head = phonemes.getHead()
-        min_prob = head.getProb() - (12 * temp)
+        tail = phonemes.getTail()
+
+        prob_range = abs(head.getProb() - tail.getProb())
+        min_prob = head.getProb() - (prob_range * temp)
 
         sel_phone_list = [head]
         curr_phone = head
 
-        while curr_phone.getProb() > min_prob:
+        while curr_phone.getProb() >= min_prob:
             sel_phone_list += [curr_phone]
             curr_phone = curr_phone.getNext()
 
