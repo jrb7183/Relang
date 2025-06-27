@@ -18,26 +18,29 @@ def consProb(base_prob, prob_list = PLL.PhonemeList):
         place = bin & 31
         
         if place in place_probs:
-            temp_prob += math.log(place_probs[place] / 2)
+            temp_prob += math.log(place_probs[place])
         
         else: # Coarticulated consonant
             front_bin = (bin & 4) or 2 # Fancy way of seeing if Labial or Coronal is the front-most place
             
             place = (bin - front_bin) & 31
-            temp_prob += math.log(place_probs[place] / 2)
+            temp_prob += math.log(place_probs[place])
 
             place = ((bin >> 11) & 24) + front_bin
-            temp_prob += math.log(place_probs[place] / 2)
+            temp_prob += math.log(place_probs[place])
 
-        # Laryngeal Features Tenuis    Aspirated Ejective  Ten Click Voiced     Breathy    Implosive  Voiced Click
-        laryng_probs =       {0: 0.25, 32: 0.21, 64: 0.16, 96: 0.03, 128: 0.21, 160: 0.05, 192: 0.07, 224: 0.02}
+        # Laryngeal Features Tenuis    Aspirated Ejective  Ten Click Voiced     Breathy     Implosive  Voiced Click
+        laryng_probs =       {0: 0.28, 32: 0.24, 64: 0.16, 96: 0.01, 128: 0.24, 160: 0.025, 192: 0.04, 224: 0.005}
         laryng = bin & 224
-        temp_prob += math.log(laryng_probs[laryng] / 8)
+        temp_prob += math.log(laryng_probs[laryng])
 
         # Sonorants
         if bin & 256 != 0:
             if bin & 128 == 0: # Unvoiced
                 temp_prob += math.log(0.001)
+
+            else: # Voiced
+                temp_prob += math.log(0.999)
 
         # Manner       Plosive   Affricate  Fricative   Sibilant   Nasal      Trill     Tap        Approximant
         manner_probs = {0: 0.2, 512: 0.04, 1024: 0.09, 1536: 0.12, 256: 0.19, 768: 0.12, 1280: 0.12, 1792: 0.12}
@@ -45,14 +48,14 @@ def consProb(base_prob, prob_list = PLL.PhonemeList):
         temp_prob += math.log(manner_probs[manner])
 
         # Laterals
-        if bin & 2**12 != 0:
-            if manner == 1792:
-                temp_prob += math.log(0.5)
-            else:
+        if manner != 1792: # Ignore Approximants
+            if bin & 2**12 != 0:
                 temp_prob += math.log(0.1)
+            else:
+                temp_prob += math.log(0.9)
 
 
-        prob_list.addNode(cons, bin, temp_prob)
+        prob_list.addNode(cons, bin, temp_prob + math.log(0.8607))
 
         # Nasalized Versions
         if manner != 256:
@@ -90,12 +93,12 @@ def vowelProb(base_prob, prob_list = PLL.PhonemeList):
 
         # Schwa Adjustment
 
-        prob_list.addNode(vowel, bin, temp_prob)
+        prob_list.addNode(vowel, bin, temp_prob + math.log(0.955))
 
     vowel = prob_list.getHead()
     orig_count = prob_list.getCount()
     for _ in range(orig_count):
-        temp_prob = vowel.getProb()
+        temp_prob = vowel.getProb() - math.log(0.955)
 
         offglide = prob_list.getHead()
         for _ in range(orig_count):
@@ -119,9 +122,6 @@ def vowelProb(base_prob, prob_list = PLL.PhonemeList):
     return
 
 
-
-
-
 def calcBaseProb(cons: bool):
     base_prob = 0 # 100% in logprob
     probs = PLL.PhonemeList()
@@ -143,3 +143,13 @@ if __name__ == "__main__":
 
     probs = calcBaseProb(val == "cons")
     probs.printList(limit)
+
+    # node = probs.getHead()
+    # total = 0
+    # while node:
+
+    #     total += math.e**(node.getProb())
+    #     node = node.getNext()
+
+    # print(total)
+
