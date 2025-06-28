@@ -3,8 +3,8 @@ import pandas as pd
 from collections import Counter
 
 sys.path.append(".")
-from probs.phoneProb import calcBaseProb
-from selphone.selectPhonemes import selectPhonemes
+from probs.newphoneProb import calcBaseProb
+from selphone.newselectPhonemes import selectPhonemes
 
 
 def spTester(probs: pd.DataFrame, num, temp, iter):
