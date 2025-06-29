@@ -142,22 +142,26 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 sel_num -= places[sel][1]
                 sel += 1
 
-        # Laryngeal Features
-        laryngeals = probs["Laryngeals"]
-        sel_num = random.random()
-        sel = False
-
-        while sel >= 0:
-            if sel_num < laryngeals[sel][1]:
-                phoneme_bin += laryngeals[sel][0]
-                sel = -1
-
-            else:
-                sel_num -= laryngeals[sel][1]
-                sel += 1
-
         # Manner of Articulation
-        manners = probs["Manner"]
+        manners = probs["Manner"] + []
+
+        # If the POA is palatal or velar, remove chance for taps and trills
+        if phoneme_bin == 19 or phoneme_bin == 9:
+            manners.pop(5)
+            manners.pop(5)
+
+            for manner in manners:
+                manner[1] += 0.04
+
+        # If the POA has no coronal component, remove chance for sibilants
+        if phoneme_bin & 2 == 0:
+            manners[2][1] += manners[3][1]
+            manners.pop(3)
+
+        # If POA is glottal, only allow obstruents and approximants
+        if phoneme_bin == 0:
+            manners = [[0, 0.58], [512, 0.04], [1024, 0.38]]
+
         sel_num = random.random()
         sel = False
 
@@ -170,36 +174,73 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 sel_num -= manners[sel][1]
                 sel += 1
 
+        # Laryngeal Features
+        manner = (phoneme_bin >> 8)
+        if phoneme_bin != 0 and phoneme_bin != 512: # If not a glottal stop or affricate
+            laryngeals = probs["Laryngeals"] + []
+            sel_num = random.random()
+            sel = False
+
+            
+            if manner > 0: # If not a plosive, remove chance for clicks and implosives
+                laryngeals[0][1] += laryngeals[3][1]
+                laryngeals[4][1] += laryngeals[7][1]
+                laryngeals[4][1] += laryngeals[6][1]
+
+                laryngeals.pop(3)
+                laryngeals.pop()
+                laryngeals.pop()
+
+            if manner % 2 == 1: # If a sonorant, remove chance for ejectives
+                laryngeals[0][1] += laryngeals[2][1]
+                laryngeals.pop(2)
+
+            if phoneme_bin % 8 == 0: # Glottal fricative
+                laryngeals = [[0, 0.8], [128, 0.2]]
+
+            if phoneme_bin == 537: # Pharyngeal Affricate
+                laryngeals = [[0, 0.7], [32, 0.24], [64, 0.06]]
+
+            while sel >= 0:
+                if sel_num < laryngeals[sel][1]:
+                    phoneme_bin += laryngeals[sel][0]
+                    sel = -1
+
+                else:
+                    sel_num -= laryngeals[sel][1]
+                    sel += 1
+
         # Nasality
-        nasality = probs["Nasality"]
-        sel_num = random.random()
-        sel = False
-
-        while sel >= 0:
-            if sel_num < nasality[sel][1]:
-                phoneme_bin += nasality[sel][0]
-                sel = -1
-
-            else:
-                sel_num -= nasality[sel][1]
-                sel += 1
-
-        # Laterality
-        sel_manner = (phoneme_bin >> 8) % 8
-        if  sel_manner > 2: # No lateral plosives or nasals
-
-            laterality = probs["Laterality"]
+        if manner != 1: # Not a nasal
+            nasality = probs["Nasality"]
             sel_num = random.random()
             sel = False
 
             while sel >= 0:
-                if sel_num < laterality[sel][1]:
-                    phoneme_bin += laterality[sel][0]
+                if sel_num < nasality[sel][1]:
+                    phoneme_bin += nasality[sel][0]
                     sel = -1
 
                 else:
-                    sel_num -= laterality[sel][1]
+                    sel_num -= nasality[sel][1]
                     sel += 1
+
+        # Laterality
+        if manner > 2: # No lateral plosives or nasals
+            if not (phoneme_bin % 4 == 0 or phoneme_bin % 32 == 25): # No Labial, Glottal or Pharyngeal laterals 
+
+                laterality = probs["Laterality"]
+                sel_num = random.random()
+                sel = False
+
+                while sel >= 0:
+                    if sel_num < laterality[sel][1]:
+                        phoneme_bin += laterality[sel][0]
+                        sel = -1
+
+                    else:
+                        sel_num -= laterality[sel][1]
+                        sel += 1
 
         # Suprasegmentals
         if (phoneme_bin >> 11) == 0: # Can't be nasal
@@ -228,7 +269,7 @@ if __name__ == "__main__":
     # temp = float(sys.argv[2])
 
     consonants = loadPhonemes(True)
-    print(consonants[(consonants.index > 4000) & (consonants.index < 4500)])
+    # print(consonants[(consonants.index % 8 == 0) & (consonants.index < 1300)])
     probs = relangProbs()
     sel_phones = selectConsonants(consonants, probs["Consonants"], num)
 
