@@ -12,9 +12,25 @@ from utils.phonemeLoader import loadPhonemes
 
 def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
     sel_phonemes = []
+    guarantees = {
+        "places": Counter(),
+        "manners": Counter(),
+        "laryngeals": Counter(),
+        "nasals": 0,
+        "laterals": 0,
+        "suprasegmentals": Counter()
+    }
     
     while len(sel_phonemes) < num_phonemes:
         phoneme_bin = 0
+
+        for key in guarantees:
+            if key not in ["nasals", "laterals"]:
+                print(key, guarantees[key].total(), guarantees[key])
+            else:
+                print(key, guarantees[key])
+
+        print("")
 
         # Place of Articulation
         places = probs["Place"] + []
@@ -36,6 +52,19 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
 
             else:
                 place[1] += prob_adjust
+
+        # Set place guarantees
+        if sel_place in guarantees["places"]:
+            guarantees["places"][sel_place] -= 1
+            
+            if guarantees["places"][sel_place] == 0:
+                del guarantees["places"][sel_place]
+
+        else:
+            if sel_place != 0: # Not glottal
+                guarantees["places"][sel_place] = num_phonemes // 5
+
+
 
         # Manner of Articulation
         manners = probs["Manner"] + []
@@ -79,6 +108,17 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
 
             else:
                 manner[1] += prob_adjust
+
+        # Set manner guarantees
+        if sel_manner in guarantees["manners"]:
+            guarantees["manners"][sel_manner] -= 1
+            
+            if guarantees["manners"][sel_manner] == 0:
+                del guarantees["manners"][sel_manner]
+
+        else:
+            guarantees["manners"][sel_manner] = num_phonemes // 4
+        
 
         # Laryngeal Features
         manner = (phoneme_bin >> 8)
@@ -128,15 +168,31 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 else:
                     laryngeal[1] += prob_adjust
 
+        # Set laryngeal guarantees
+        if sel_laryngeal in guarantees["laryngeals"]:
+            guarantees["laryngeals"][sel_laryngeal] -= 1
+            
+            if guarantees["laryngeals"][sel_laryngeal] == 0:
+                del guarantees["laryngeals"][sel_laryngeal]
+
+        else:
+            guarantees["laryngeals"][sel_laryngeal] = num_phonemes // 3
+
+
         # Nasality
         if manner != 1: # Not a nasal
             nasality = probs["Nasality"]
             sel_num = random.random()
             
-            if sel_num < nasality[0][1]:
-                phoneme_bin += nasality[0][0]
-            else:
+            if sel_num >= nasality[0][1]:
                 phoneme_bin += nasality[1][0]
+
+                # Set nasality guarantees
+                if guarantees["nasals"] > 0:
+                    guarantees["nasals"] -= 1
+                else:
+                    guarantees["nasals"] = num_phonemes // 10
+
 
         # Laterality
         if manner > 3 and manner != 6: # No lateral plosives, nasals, affricates, trills, or sibilants
@@ -145,10 +201,15 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 laterality = probs["Laterality"]
                 sel_num = random.random()
 
-                if sel_num < laterality[0][1]:
-                    phoneme_bin += laterality[0][0]
+                if sel_num >= laterality[0][1]:
+                    phoneme_bin += laterality[1][0]
+
+                # Set laterality guarantees
+                if guarantees["laterals"] > 0:
+                    guarantees["laterals"] -= 1
                 else:
-                    sel_num -= laterality[0][1]
+                    guarantees["laterals"] = num_phonemes // 10
+
 
         # Suprasegmentals
         if (phoneme_bin >> 11) == 0: # Can't be nasal
@@ -159,6 +220,19 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
             while sel >= 0:
                 if sel_num < suprasegmentals[sel][1]:
                     phoneme_bin += suprasegmentals[sel][0]
+                    
+                    # Set suprasegmental guarantees
+                    if sel != 0:
+                        sel_supr = suprasegmentals[sel][0]
+                        if sel_supr in guarantees["suprasegmentals"]:
+                            guarantees["suprasegmentals"][sel_supr] -= 1
+                            
+                            if guarantees["suprasegmentals"][sel_supr] == 0:
+                                del guarantees["suprasegmentals"][sel_supr]
+
+                        else:
+                            guarantees["suprasegmentals"][sel_supr] = num_phonemes // 10
+
                     sel = -1
 
                 else:
