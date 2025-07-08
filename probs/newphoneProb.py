@@ -32,8 +32,8 @@ def consProb(base_prob):
             place = ((bin >> 11) & 24) + front_bin
             temp_prob += np.log(place_probs[place] / 2)
 
-        # Laryngeal Features Tenuis    Aspirated Ejective  Ten Click Voiced     Breathy    Implosive  Voiced Click
-        laryng_probs =       {0: 0.25, 32: 0.21, 64: 0.16, 96: 0.03, 128: 0.21, 160: 0.05, 192: 0.07, 224: 0.02}
+        # Laryngeal Features Tenuis    Aspirated Ejective  Ten Click Voiced     Breathy     Implosive  Voiced Click
+        laryng_probs =       {0: 0.28, 32: 0.24, 64: 0.16, 96: 0.01, 128: 0.24, 160: 0.025, 192: 0.04, 224: 0.005}
         laryng = bin & 224
         temp_prob += np.log(laryng_probs[laryng] / 8)
 

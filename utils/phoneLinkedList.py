@@ -32,7 +32,7 @@ class PhonemeNode:
         self.__prev = node
     
     def compareNode(self, node):
-        return self.__bin == node.bin
+        return self.__bin == node.__bin
 
     def printNode(self):
         print(f"Phoneme {self.__phoneme} with encoding {bin(self.__bin)} has prob {self.__prob}")
