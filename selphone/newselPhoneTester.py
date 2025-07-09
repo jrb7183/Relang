@@ -1,18 +1,19 @@
 import sys
+import pandas as pd
 from collections import Counter
 
 sys.path.append(".")
-from probs.phoneProb import calcBaseProb
-from utils.phoneLinkedList import PhonemeList
-from selphone.selectPhonemes import selectPhonemes
+from probs.newphoneProb import calcBaseProb
+from selphone.newselectPhonemes import selectPhonemes
 
 
-def spTester(probs: PhonemeList, num, temp, iter):
+def spTester(probs: pd.DataFrame, num, temp, iter):
     phones = Counter()
     for _ in range(iter):
-        temp_probs = probs.copyList()
-        sel_phones = selectPhonemes(temp_probs, num, temp)
+        sel_phones = selectPhonemes(probs, num, temp)
         phones.update(sel_phones)
+
+        probs.loc[:, "Selected"] = False
 
     print(phones)
 
