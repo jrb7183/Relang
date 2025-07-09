@@ -24,6 +24,8 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
     while len(sel_phonemes) < num_phonemes:
         phoneme_bin = 0
 
+        # Debug loop
+        print(len(sel_phonemes))
         for key in guarantees:
             if key not in ["nasals", "laterals"]:
                 print(key, guarantees[key].total(), guarantees[key])
@@ -34,6 +36,9 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
 
         # Place of Articulation
         places = probs["Place"] + []
+        if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
+            places = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
+
         places.sort(reverse=True, key= lambda place : place[1])
 
         sel_place = places[0][0]
@@ -54,15 +59,12 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 place[1] += prob_adjust
 
         # Set place guarantees
-        if sel_place in guarantees["places"]:
+        if guarantees["places"][sel_place] > 0:
             guarantees["places"][sel_place] -= 1
-            
-            if guarantees["places"][sel_place] == 0:
-                del guarantees["places"][sel_place]
 
         else:
             if sel_place != 0: # Not glottal
-                guarantees["places"][sel_place] = num_phonemes // 5
+                guarantees["places"][sel_place] = min(num_phonemes // 5, num_phonemes - len(sel_phonemes) - guarantees["places"].total() - 1)
 
 
 
@@ -89,6 +91,12 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
         if phoneme_bin == 0:
             manners = [[0, 0.58], [512, 0.04], [1024, 0.38]]
 
+        if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
+            manners = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
+            
+            if len(manners) == 0:
+                continue
+
         manners.sort(reverse=True, key= lambda manner : manner[1])
 
         sel_manner = manners[0][0]
@@ -110,14 +118,11 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 manner[1] += prob_adjust
 
         # Set manner guarantees
-        if sel_manner in guarantees["manners"]:
+        if guarantees["manners"][sel_manner] > 0:
             guarantees["manners"][sel_manner] -= 1
-            
-            if guarantees["manners"][sel_manner] == 0:
-                del guarantees["manners"][sel_manner]
 
         else:
-            guarantees["manners"][sel_manner] = num_phonemes // 4
+            guarantees["manners"][sel_manner] = min(num_phonemes // 4, num_phonemes - len(sel_phonemes) - guarantees["manners"].total() - 1)
         
 
         # Laryngeal Features
@@ -148,6 +153,12 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 laryngeals.pop()
                 print(laryngeals)
 
+            if guarantees["laryngeals"].total() + len(sel_phonemes) == num_phonemes:
+                laryngeals = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
+
+                if len(laryngeals) == 0:
+                    continue
+
             laryngeals.sort(reverse=True, key= lambda laryngeal : laryngeal[1])
 
             sel_laryngeal = laryngeals[0][0]
@@ -169,29 +180,26 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                     laryngeal[1] += prob_adjust
 
         # Set laryngeal guarantees
-        if sel_laryngeal in guarantees["laryngeals"]:
+        if guarantees["laryngeals"][sel_laryngeal] > 0:
             guarantees["laryngeals"][sel_laryngeal] -= 1
-            
-            if guarantees["laryngeals"][sel_laryngeal] == 0:
-                del guarantees["laryngeals"][sel_laryngeal]
 
         else:
-            guarantees["laryngeals"][sel_laryngeal] = num_phonemes // 3
+            guarantees["laryngeals"][sel_laryngeal] = min(num_phonemes // 3, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
 
 
         # Nasality
         if manner != 1: # Not a nasal
             nasality = probs["Nasality"]
             sel_num = random.random()
-            
-            if sel_num >= nasality[0][1]:
+
+            if sel_num >= nasality[0][1] or guarantees["nasals"] + len(sel_phonemes) == num_phonemes:
                 phoneme_bin += nasality[1][0]
 
                 # Set nasality guarantees
                 if guarantees["nasals"] > 0:
                     guarantees["nasals"] -= 1
                 else:
-                    guarantees["nasals"] = num_phonemes // 10
+                    guarantees["nasals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["nasals"] - 1)
 
 
         # Laterality
@@ -201,21 +209,31 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 laterality = probs["Laterality"]
                 sel_num = random.random()
 
-                if sel_num >= laterality[0][1]:
+                if sel_num >= laterality[0][1] or guarantees["laterals"] + len(sel_phonemes) == num_phonemes:
                     phoneme_bin += laterality[1][0]
 
-                # Set laterality guarantees
-                if guarantees["laterals"] > 0:
-                    guarantees["laterals"] -= 1
-                else:
-                    guarantees["laterals"] = num_phonemes // 10
+                    # Set laterality guarantees
+                    if guarantees["laterals"] > 0:
+                        guarantees["laterals"] -= 1
+                    else:
+                        guarantees["laterals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["laterals"] - 1)
 
 
         # Suprasegmentals
         if (phoneme_bin >> 11) == 0: # Can't be nasal
             suprasegmentals = probs["Suprasegmentals"]
             sel_num = random.random()
-            sel = False
+            sel = 0
+
+            if guarantees["suprasegmentals"].total() > 0:
+                sel_num = 0
+                key = guarantees["suprasegmentals"].most_common(1)[0][0]
+
+                while suprasegmentals[sel][0] != key:
+                    sel_num += suprasegmentals[sel][1]
+                    sel += 1
+
+                sel = 0
 
             while sel >= 0:
                 if sel_num < suprasegmentals[sel][1]:
@@ -224,14 +242,11 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                     # Set suprasegmental guarantees
                     if sel != 0:
                         sel_supr = suprasegmentals[sel][0]
-                        if sel_supr in guarantees["suprasegmentals"]:
+                        if guarantees["suprasegmentals"][sel_supr] > 0:
                             guarantees["suprasegmentals"][sel_supr] -= 1
                             
-                            if guarantees["suprasegmentals"][sel_supr] == 0:
-                                del guarantees["suprasegmentals"][sel_supr]
-
                         else:
-                            guarantees["suprasegmentals"][sel_supr] = num_phonemes // 10
+                            guarantees["suprasegmentals"][sel_supr] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["suprasegmentals"].total() - 1)
 
                     sel = -1
 

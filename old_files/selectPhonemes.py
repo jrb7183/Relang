@@ -3,7 +3,7 @@ import sys
 from collections import Counter
 
 sys.path.append(".")
-from probs.phoneProb import calcBaseProb
+from old_files.phoneProb import calcBaseProb
 from utils.phoneLinkedList import PhonemeList
 
 def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
