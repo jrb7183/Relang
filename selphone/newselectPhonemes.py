@@ -5,7 +5,7 @@ import pandas as pd
 import time
 from collections import Counter
 
-sys.path.append(".")
+sys.path.append("..")
 from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
 
@@ -256,7 +256,7 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
 
         # Find Phoneme
         if not consonants.at[phoneme_bin, "Selected"]:
-            sel_phonemes += [consonants.at[phoneme_bin, "Phoneme"]]
+            sel_phonemes += [[consonants.at[phoneme_bin, "Phoneme"], phoneme_bin]]
             consonants.at[phoneme_bin, "Selected"] = True
 
     return sel_phonemes
@@ -272,4 +272,4 @@ if __name__ == "__main__":
     sel_phones = selectConsonants(consonants, probs["Consonants"], num)
 
     for i in range(len(sel_phones)):
-        print(f"{i+1}. {sel_phones[i]}")
+        print(f"{i+1}. {sel_phones[i][0]}")
