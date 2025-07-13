@@ -7,11 +7,10 @@ Relang is currently a WIP, so it only has limited functionality. Currently, I am
 ![image](https://github.com/user-attachments/assets/822eaf28-fde2-4437-8702-2a650878cf8e)
 
 ## Generating Phonologies
+Once the repository is cloned, use the command `cd src` to switch to the main directory, and then type `python main.py [num]` to run the application. You can specify the number of phonemes you would like with `[num]`.
 
-Once the repository is cloned, you can generate a phonology using the command `python selphone/selectPhonemes.py [num] [temperature]`. Both `[num]` and `[temperature]` are required parameters. 
+## Old Phonology Selector
 
-You can specify the number of phonemes you would like with `[num]`. 
+Once the repository is cloned, you also have the option to use the old phonology selector. In the base directory, use the command `python old_files/selectPhonemes.py [num] [temperature]`. Both `[num]` and `[temperature]` are required parameters. Similar to the current phoneme selector, you can specify the number of phonemes you would like with `[num]`. 
 
-So the program does not produce the same phonology every time, there is a degree of randomness `[temperature]` (analogous to an LLM model's temperature) that picks from a range of the most probable variables instead of just selecting the most probable one. `[temperature]` must be a rational number between `0` and `1`, where `1` is completely random, and `0` selects only the most probable phoneme. A value of `0.0001` has given me the best results so far, and anything less than `1e-5` is essentially equivalent to `0`. 
-
-Currently, access to `consCorrespondences.json` and `vowelCorrespondences.json` is restricted. Please contact Josh for access.
+So the program does not produce the same phonology every time, there is a degree of randomness `[temperature]` (analogous to an LLM model's temperature) that picks from a range of the most probable variables instead of just selecting the most probable one. `[temperature]` must be a rational number between `0` and `1`, where `1` is completely random, and `0` selects only the most probable phoneme. A value of `0.0001` has given me the best results so far, and anything less than `1e-5` is essentially equivalent to `0`.

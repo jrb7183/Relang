@@ -256,7 +256,7 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
 
         # Find Phoneme
         if not consonants.at[phoneme_bin, "Selected"]:
-            sel_phonemes += [[consonants.at[phoneme_bin, "Phoneme"], phoneme_bin]]
+            sel_phonemes += [(consonants.at[phoneme_bin, "Phoneme"], phoneme_bin)]
             consonants.at[phoneme_bin, "Selected"] = True
 
     return sel_phonemes

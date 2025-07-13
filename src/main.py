@@ -1,6 +1,5 @@
 import sys
 from fastapi import FastAPI
-# import apiCalls
 
 sys.path.append("..")
 from probs.relangProbs import relangProbs
@@ -9,7 +8,6 @@ from selphone.newselectPhonemes import selectConsonants
 from utils.tableFormatter import tableFormatter
 
 app = FastAPI()
-# app.include_router(apiCalls.router)
 
 def main(num):
     # temp = float(sys.argv[2])
@@ -24,6 +22,11 @@ def main(num):
 async def createConsList(cons_num: int):
     cons_list = main(cons_num)
     return tableFormatter(cons_list)
+
+# @app.post("/cons")
+# async def createConsList(cons_num: int):
+#     cons_list = main(cons_num)
+#     return tableFormatter(cons_list)
     
 
 if __name__ == "__main__":
