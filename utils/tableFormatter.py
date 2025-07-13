@@ -1,9 +1,6 @@
-from fastapi import APIRouter
+""" Reformats list of phonemes to be interpretable by the frontend """
 
-router = APIRouter()
-
-@router.post("/cons")
-async def createConsList(cons_list):
+def tableFormatter(cons_list):
     cons_dict = {}
     for cons_tup in cons_list:
         
@@ -38,10 +35,4 @@ async def createConsList(cons_list):
         else:
             cons_dict[place] = [cons_tup[0]]
 
-    print(cons_dict)
     return cons_dict
-
-
-@router.get("/cons")
-async def getConsList():
-    return
