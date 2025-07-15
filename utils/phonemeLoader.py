@@ -1,10 +1,9 @@
 import json
 import sys
-import numpy as np
-import pandas as pd
+from pandas import DataFrame
 
 def loadCons():
-    with open("data/consCorrespondences.json", "r", encoding="utf-8") as f:
+    with open("../data/consCorrespondences.json", "r", encoding="utf-8") as f:
         temp_dict = json.load(f)
 
     # Information about phonemes is stored in these parallel lists and then added to a Data Frame at once
@@ -35,12 +34,12 @@ def loadCons():
             cons_list += [cons + suprs[i]]
             bin_list += [bin + (i << 14) + (1 << 13)]
 
-    cons = pd.DataFrame(data={"Phoneme":cons_list, "Selected":False}, index=bin_list)
+    cons = DataFrame(data={"Phoneme":cons_list, "Selected":False}, index=bin_list)
     return cons.sort_index()
 
 
 def loadVowels():
-    with open("data/vowelCorrespondences.json", "r", encoding="utf-8") as f:
+    with open("../data/vowelCorrespondences.json", "r", encoding="utf-8") as f:
         temp_dict = json.load(f)
 
     # Information about phonemes is stored in these parallel lists and then added to a Data Frame at once
@@ -74,7 +73,7 @@ def loadVowels():
             vowel_list += [vowel_list[i] + supr]
             bin_list += [bin_list[i] + (1 << suprs[supr])]
     
-    vowels = pd.DataFrame(data={"Phoneme":vowel_list, "Selected":False}, index=bin_list)
+    vowels = DataFrame(data={"Phoneme":vowel_list, "Selected":False}, index=bin_list)
     return vowels.sort_index()
 
 

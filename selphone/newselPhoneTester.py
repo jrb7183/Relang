@@ -6,6 +6,7 @@ sys.path.append(".")
 from probs.newphoneProb import calcBaseProb
 from selphone.newselectPhonemes import selectPhonemes
 
+""" OUT OF DATE """
 
 def spTester(probs: pd.DataFrame, num, temp, iter):
     phones = Counter()
