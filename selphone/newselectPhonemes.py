@@ -25,14 +25,14 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
         phoneme_bin = 0
 
         # Debug loop
-        print(len(sel_phonemes))
-        for key in guarantees:
-            if key not in ["nasals", "laterals"]:
-                print(key, guarantees[key].total(), guarantees[key])
-            else:
-                print(key, guarantees[key])
+        # print(len(sel_phonemes))
+        # for key in guarantees:
+        #     if key not in ["nasals", "laterals"]:
+        #         print(key, guarantees[key].total(), guarantees[key])
+        #     else:
+        #         print(key, guarantees[key])
 
-        print("")
+        # print("")
 
         # Place of Articulation
         places = probs["Place"] + []

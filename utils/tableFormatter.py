@@ -20,11 +20,11 @@ def tableFormatter(cons_list):
     label_row = list(filter(lambda label: label, label_row))
 
     # Initialize cons_dict 
-    cons_dict["Consonants"] = label_row
+    cons_dict["Consonants"] = list(map(lambda label: {"isHeader": True, "text": label}, label_row))
     manners = ["Plosive", "Nasal", "Affricate", "Trill", "Fricative", "Tap", "Sibilant", "Approximant"]
     
     for manner in manners:
-        cons_dict[manner] = ["" for _ in range(len(label_row))]
+        cons_dict[manner] = [{"isHeader": False, "text": ""} for _ in range(len(label_row))]
 
     used_manners = set()
     # Add consonants to cons_dict by manner
@@ -36,10 +36,10 @@ def tableFormatter(cons_list):
             used_manners.add(manner)
 
             if manner in same_list:
-                cons_dict[manner][i] += ", " + cons_tup[0]
+                cons_dict[manner][i]["text"] += ", " + cons_tup[0]
 
             else:
-                cons_dict[manner][i] = cons_tup[0]
+                cons_dict[manner][i]["text"] = cons_tup[0]
                 same_list += [manner]
 
     # Remove unused manner
