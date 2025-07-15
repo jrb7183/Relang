@@ -2,9 +2,9 @@
 
 This application aims to help conlangers break free of their latent habits when approaching new languages. Relang analyzes aspects of conlangers' old protolangs to find commonalities amongst them and suggests a protolang that breaks from those commonalities.
 
-Relang is currently a WIP, so it only has limited functionality. Currently, I am working on the Phoneme Selector (see diagram below). The program does run, but it can only generate phonologies at this point. The phonologies it generates have not been the most naturalitsic, so that is what I am focusing on right now.
+Relang is currently a WIP, so it only has limited functionality. Currently, I am focused on the phonology pipeline. Specifically, I am working on the Phoneme Selector (see diagram below). The program does run, but it can only generate phonologies at this point. The phonologies it generates have not been the most naturalitsic, so that is what I am focusing on right now.
 
-![image](https://github.com/user-attachments/assets/822eaf28-fde2-4437-8702-2a650878cf8e)
+![image](https://github.com/user-attachments/assets/63b409f4-a003-47e9-a1a6-6ea7f82bc152)
 
 ## Generating Phonologies
 Once the repository is cloned, use the command `cd src` to switch to the main directory, and then type `python main.py test [num]` to run the application. You can specify the number of phonemes you would like with `[num]`. If you want to view the output on the website instead, use the command `python main.py app`.
