@@ -7,7 +7,7 @@ Relang is currently a WIP, so it only has limited functionality. Currently, I am
 ![image](https://github.com/user-attachments/assets/822eaf28-fde2-4437-8702-2a650878cf8e)
 
 ## Generating Phonologies
-Once the repository is cloned, use the command `cd src` to switch to the main directory, and then type `python main.py [num]` to run the application. You can specify the number of phonemes you would like with `[num]`.
+Once the repository is cloned, use the command `cd src` to switch to the main directory, and then type `python main.py test [num]` to run the application. You can specify the number of phonemes you would like with `[num]`. If you want to view the output on the website instead, use the command `python main.py app`.
 
 ## Old Phonology Selector
 
