@@ -45,9 +45,13 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
         phoneme_bin += sel_place
 
         # Select prob_adjust to lower max prob and increase others
+        div = 0
+        if sel_place:
+            div = len(places) - (sel_place % 4 + 1)
+
         prob_adjust = max(places[-1][1], 0.01)
-        if places[0][1] - (prob_adjust * (len(places) - 1)) < 0:
-            prob_adjust = places[0][1] / (len(places) - 1)
+        if places[0][1] - (prob_adjust * div) < 0:
+            prob_adjust = places[0][1] / div
 
         # print(sel_place, prob_adjust)
 
@@ -55,7 +59,7 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
             if place[0] == sel_place:
                 place[1] -= prob_adjust * (len(places) - 1)
 
-            else:
+            elif sel_place % 8 != place[0] % 8:
                 place[1] += prob_adjust
 
         # Set place guarantees
@@ -85,7 +89,11 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
 
         # If the POA has no coronal component, remove chance for sibilants
         if phoneme_bin & 2 == 0:
-            manners.pop(3)
+            manners.pop(3) # LAZY SOLUTION, THESE ARE TECHNICALLT POSSIBLE, JUST EXTREMELY RARE
+
+        # If the POA is coronal and isn't dental, remove chance for fricatives
+        elif phoneme_bin % 8 == 2 and phoneme_bin % 32 != 26:
+            manners.pop(2)
 
         # If POA is glottal, only allow obstruents and approximants
         if phoneme_bin == 0:
@@ -139,8 +147,13 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
                 laryngeals.pop(3)
                 laryngeals.pop()
 
-            if manner % 2 == 1: # If a sonorant, remove chance for ejectives
+            if manner % 2 == 1: # If a sonorant, remove chance for ejectives and greatly reduce chance for tenuis and aspirated
                 laryngeals.pop(2)
+
+                laryngeals[0][1] /= 2
+                laryngeals[1][1] /= 2
+
+                laryngeals[2][1] += laryngeals[0][1] + laryngeals[1][1]
 
             if phoneme_bin % 8 == 0: # Glottal fricative, only tenuis and voiced
                 laryngeals.pop(2)
@@ -184,8 +197,8 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
             guarantees["laryngeals"][sel_laryngeal] -= 1
 
         else:
-            guarantees["laryngeals"][sel_laryngeal] = min(num_phonemes // 3, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
-
+            if not (manner % 2 == 1 and sel_laryngeal == 128): 
+                guarantees["laryngeals"][sel_laryngeal] = min(num_phonemes // 3, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
 
         # Nasality
         if manner != 1: # Not a nasal
