@@ -265,7 +265,6 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             consonants.at[phoneme_bin, "Selected"] = True
 
         # Update Permitted Phonemes
-        print(permit_phones)
         permit_phones = updatePermitted(phoneme_bin, permit_phones)
         
 
