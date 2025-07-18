@@ -1,16 +1,15 @@
 import random
 import sys
-import numpy as np
-import pandas as pd
-import time
+from pandas import DataFrame
 from collections import Counter
 
 sys.path.append("..")
 from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
+from selphone.phonemeConstraints import updatePermitted
 
 
-def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
+def selectConsonants(consonants: DataFrame, probs, num_phonemes):
     sel_phonemes = []
     guarantees = {
         "places": Counter(),
@@ -20,8 +19,10 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
         "laterals": 0,
         "suprasegmentals": Counter()
     }
-    
+    permit_phones = {26: {0: [0]}, 10: {0: [0]}}
+
     while len(sel_phonemes) < num_phonemes:
+        curr_permit = dict(permit_phones)
         phoneme_bin = 0
 
         # Debug loop
@@ -39,10 +40,12 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
         if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
             places = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
 
-        places.sort(reverse=True, key= lambda place : place[1])
+        places = list(filter(lambda place: place[0] in curr_permit, places))
+        places.sort(reverse=True, key=lambda place: place[1])
 
         sel_place = places[0][0]
         phoneme_bin += sel_place
+        curr_permit = curr_permit[sel_place]
 
         # Select prob_adjust to lower max prob and increase others
         prob_adjust = max(places[-1][1], 0.01)
@@ -65,7 +68,6 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
         else:
             if sel_place != 0: # Not glottal
                 guarantees["places"][sel_place] = min(num_phonemes // 5, num_phonemes - len(sel_phonemes) - guarantees["places"].total() - 1)
-
 
 
         # Manner of Articulation
@@ -93,14 +95,16 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
 
         if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
             manners = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
-            
-            if len(manners) == 0:
-                continue
+
+        manners = list(filter(lambda manner: manner[0] in curr_permit, manners))
+        if len(manners) == 0:
+            continue
 
         manners.sort(reverse=True, key= lambda manner : manner[1])
 
         sel_manner = manners[0][0]
         phoneme_bin += sel_manner
+        curr_permit = curr_permit[sel_manner]
 
         # Select prob_adjust to lower max prob and increase others
         prob_adjust = max(manners[-1][1], 0.01)
@@ -156,8 +160,9 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
             if guarantees["laryngeals"].total() + len(sel_phonemes) == num_phonemes:
                 laryngeals = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
 
-                if len(laryngeals) == 0:
-                    continue
+            laryngeals = list(filter(lambda laryngeal: laryngeal[0] in curr_permit, laryngeals))
+            if len(laryngeals) == 0:
+                continue
 
             laryngeals.sort(reverse=True, key= lambda laryngeal : laryngeal[1])
 
@@ -258,6 +263,11 @@ def selectConsonants(consonants: pd.DataFrame, probs, num_phonemes):
         if not consonants.at[phoneme_bin, "Selected"]:
             sel_phonemes += [(consonants.at[phoneme_bin, "Phoneme"], phoneme_bin)]
             consonants.at[phoneme_bin, "Selected"] = True
+
+        # Update Permitted Phonemes
+        print(permit_phones)
+        permit_phones = updatePermitted(phoneme_bin, permit_phones)
+        
 
     return sel_phonemes
 
