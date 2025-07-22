@@ -48,18 +48,19 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         curr_permit = curr_permit[sel_place]
 
         # Select prob_adjust to lower max prob and increase others
-        prob_adjust = max(places[-1][1], 0.01)
-        if places[0][1] - (prob_adjust * (len(places) - 1)) < 0:
-            prob_adjust = places[0][1] / (len(places) - 1)
+        if len(places) > 1:
+            prob_adjust = max(places[-1][1], 0.01)
+            if places[0][1] - (prob_adjust * (len(places) - 1)) < 0:
+                prob_adjust = places[0][1] / (len(places) - 1)
 
-        # print(sel_place, prob_adjust)
+            # print(sel_place, prob_adjust)
 
-        for place in probs["Place"]:
-            if place[0] == sel_place:
-                place[1] -= prob_adjust * (len(places) - 1)
+            for place in probs["Place"]:
+                if place[0] == sel_place:
+                    place[1] -= prob_adjust * (len(places) - 1)
 
-            else:
-                place[1] += prob_adjust
+                else:
+                    place[1] += prob_adjust
 
         # Set place guarantees
         if guarantees["places"][sel_place] > 0:
@@ -107,19 +108,20 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         curr_permit = curr_permit[sel_manner]
 
         # Select prob_adjust to lower max prob and increase others
-        prob_adjust = max(manners[-1][1], 0.01)
-        if manners[0][1] - (prob_adjust * (len(manners) - 1)) < 0:
-            prob_adjust = manners[0][1] / (len(manners) - 1)
+        if len(manners) > 1:
+            prob_adjust = max(manners[-1][1], 0.01)
+            if manners[0][1] - (prob_adjust * (len(manners) - 1)) < 0:
+                prob_adjust = manners[0][1] / (len(manners) - 1)
 
-        # print(manners)
-        # print(sel_manner, prob_adjust, "\n")
+            # print(manners)
+            # print(sel_manner, prob_adjust, "\n")
 
-        for manner in probs["Manner"]:
-            if manner[0] == sel_manner:
-                manner[1] -= prob_adjust * (len(manners) - 1)
+            for manner in probs["Manner"]:
+                if manner[0] == sel_manner:
+                    manner[1] -= prob_adjust * (len(manners) - 1)
 
-            else:
-                manner[1] += prob_adjust
+                else:
+                    manner[1] += prob_adjust
 
         # Set manner guarantees
         if guarantees["manners"][sel_manner] > 0:
@@ -134,17 +136,12 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         if phoneme_bin != 0 and phoneme_bin != 512: # If not a glottal stop or affricate
             laryngeals = probs["Laryngeals"] + []
             
-            if manner > 0 or sel_place == 25: # If not a plosive or is pharyngeal, remove chance for clicks and implosives
-                laryngeals.pop(3)
-                laryngeals.pop()
-                laryngeals.pop()
-
-            elif manner == 0 and (sel_place == 2 or sel_place == 18 or sel_place == 4 or sel_place % 8 == 1): # If a plosive in a place with no clicks, remove clicks
+            if manner == 0 and (sel_place == 2 or sel_place == 18 or sel_place == 4 or sel_place % 8 == 1 or sel_place == 25): # If not a plosive or is pharyngeal, remove chance for clicks and implosives
                 laryngeals.pop(3)
                 laryngeals.pop()
 
-            if manner % 2 == 1: # If a sonorant, remove chance for ejectives
-                laryngeals.pop(2)
+                if sel_place == 25: # If a plosive in a place with no clicks, remove clicks
+                    laryngeals.pop()
 
             if phoneme_bin % 8 == 0: # Glottal fricative, only tenuis and voiced
                 laryngeals.pop(2)
@@ -170,19 +167,20 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             phoneme_bin += sel_laryngeal
 
             # Select prob_adjust to lower max prob and increase others
-            prob_adjust = max(laryngeals[-1][1], 0.01)
-            if laryngeals[0][1] - (prob_adjust * (len(laryngeals) - 1)) < 0:
-                prob_adjust = laryngeals[0][1] / (len(laryngeals) - 1)
+            if len(laryngeals) > 1:
+                prob_adjust = max(laryngeals[-1][1], 0.01)
+                if laryngeals[0][1] - (prob_adjust * (len(laryngeals) - 1)) < 0:
+                    prob_adjust = laryngeals[0][1] / (len(laryngeals) - 1)
 
-            # print(laryngeals)
-            # print(sel_laryngeal, prob_adjust, "\n")
+                # print(laryngeals)
+                # print(sel_laryngeal, prob_adjust, "\n")
 
-            for laryngeal in probs["Laryngeals"]:
-                if laryngeal[0] == sel_laryngeal:
-                    laryngeal[1] -= prob_adjust * (len(laryngeals) - 1)
+                for laryngeal in probs["Laryngeals"]:
+                    if laryngeal[0] == sel_laryngeal:
+                        laryngeal[1] -= prob_adjust * (len(laryngeals) - 1)
 
-                else:
-                    laryngeal[1] += prob_adjust
+                    else:
+                        laryngeal[1] += prob_adjust
 
         # Set laryngeal guarantees
         if guarantees["laryngeals"][sel_laryngeal] > 0:
@@ -190,21 +188,6 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         else:
             guarantees["laryngeals"][sel_laryngeal] = min(num_phonemes // 3, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
-
-
-        # Nasality
-        if manner != 1: # Not a nasal
-            nasality = probs["Nasality"]
-            sel_num = random.random()
-
-            if sel_num >= nasality[0][1] or guarantees["nasals"] + len(sel_phonemes) == num_phonemes:
-                phoneme_bin += nasality[1][0]
-
-                # Set nasality guarantees
-                if guarantees["nasals"] > 0:
-                    guarantees["nasals"] -= 1
-                else:
-                    guarantees["nasals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["nasals"] - 1)
 
 
         # Laterality
@@ -222,42 +205,57 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                         guarantees["laterals"] -= 1
                     else:
                         guarantees["laterals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["laterals"] - 1)
+       
+        if consonants.at[phoneme_bin, "Selected"]: # Require phonemic equivalent without supresegmentals before adding ones with them
+            # Nasality
+            if manner != 1: # Not a nasal
+                nasality = probs["Nasality"]
+                sel_num = random.random()
+
+                if sel_num >= nasality[0][1] or guarantees["nasals"] + len(sel_phonemes) == num_phonemes:
+                    phoneme_bin += nasality[1][0]
+
+                    # Set nasality guarantees
+                    if guarantees["nasals"] > 0:
+                        guarantees["nasals"] -= 1
+                    else:
+                        guarantees["nasals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["nasals"] - 1)
 
 
-        # Suprasegmentals
-        if (phoneme_bin >> 11) == 0: # Can't be nasal
-            suprasegmentals = probs["Suprasegmentals"]
-            sel_num = random.random()
-            sel = 0
-
-            if guarantees["suprasegmentals"].total() > 0:
-                sel_num = 0
-                key = guarantees["suprasegmentals"].most_common(1)[0][0]
-
-                while suprasegmentals[sel][0] != key:
-                    sel_num += suprasegmentals[sel][1]
-                    sel += 1
-
+            # Suprasegmentals
+            if (phoneme_bin >> 11) == 0: # Can't be nasal
+                suprasegmentals = probs["Suprasegmentals"]
+                sel_num = random.random()
                 sel = 0
 
-            while sel >= 0:
-                if sel_num < suprasegmentals[sel][1]:
-                    phoneme_bin += suprasegmentals[sel][0]
-                    
-                    # Set suprasegmental guarantees
-                    if sel != 0:
-                        sel_supr = suprasegmentals[sel][0]
-                        if guarantees["suprasegmentals"][sel_supr] > 0:
-                            guarantees["suprasegmentals"][sel_supr] -= 1
-                            
-                        else:
-                            guarantees["suprasegmentals"][sel_supr] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["suprasegmentals"].total() - 1)
+                if guarantees["suprasegmentals"].total() > 0:
+                    sel_num = 0
+                    key = guarantees["suprasegmentals"].most_common(1)[0][0]
 
-                    sel = -1
+                    while suprasegmentals[sel][0] != key:
+                        sel_num += suprasegmentals[sel][1]
+                        sel += 1
 
-                else:
-                    sel_num -= suprasegmentals[sel][1]
-                    sel += 1
+                    sel = 0
+
+                while sel >= 0:
+                    if sel_num < suprasegmentals[sel][1]:
+                        phoneme_bin += suprasegmentals[sel][0]
+                        
+                        # Set suprasegmental guarantees
+                        if sel != 0:
+                            sel_supr = suprasegmentals[sel][0]
+                            if guarantees["suprasegmentals"][sel_supr] > 0:
+                                guarantees["suprasegmentals"][sel_supr] -= 1
+                                
+                            else:
+                                guarantees["suprasegmentals"][sel_supr] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["suprasegmentals"].total() - 1)
+
+                        sel = -1
+
+                    else:
+                        sel_num -= suprasegmentals[sel][1]
+                        sel += 1
 
         # Find Phoneme
         if not consonants.at[phoneme_bin, "Selected"]:
@@ -265,7 +263,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             consonants.at[phoneme_bin, "Selected"] = True
 
         # Update Permitted Phonemes
-        permit_phones = updatePermitted(phoneme_bin, permit_phones)
+        permit_phones = updatePermitted(phoneme_bin, permit_phones, sel_phonemes)
         
 
     return sel_phonemes

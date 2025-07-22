@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("..")
+from selphone.constraintCriteria import placeCriteria
 
 """
 Updates the phonemes permitted to be selected by the Phoneme Selector.
@@ -14,7 +18,7 @@ Nevertheless, Relang is aiming to make sketches for sound inventories of
 proto-languages, which should be more regular.
 """
 
-def updatePermitted(phoneme_bin: int, curr_permit: dict):
+def updatePermitted(phoneme_bin: int, curr_permit: dict[int, dict[int, list]], sel_phonemes: list[list]):
     
     # Update Place Permissions
     places = []
@@ -25,11 +29,11 @@ def updatePermitted(phoneme_bin: int, curr_permit: dict):
             places = [12, 4, 9, 0]
         
         case 6: # Add post-alveolar and palatal places
-            if place in [12, 4, 9, 0]:
+            if placeCriteria(6, sel_phonemes):
                 places = [18, 19]
 
         case 8: # Add retroflex, uvular, and pharyngeal places
-            if place in [18, 19]:
+            if placeCriteria(8, sel_phonemes):
                 places = [2, 17, 25]
 
     if len(places) > 0:
