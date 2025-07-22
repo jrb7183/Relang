@@ -6,7 +6,7 @@ from collections import Counter
 sys.path.append("..")
 from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
-from selphone.phonemeConstraints import updatePermitted
+from selphone.phonemeConstraints import updateConstraints
 
 
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
@@ -263,7 +263,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             consonants.at[phoneme_bin, "Selected"] = True
 
         # Update Permitted Phonemes
-        permit_phones = updatePermitted(phoneme_bin, permit_phones, sel_phonemes)
+        permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes)       
         
 
     return sel_phonemes
