@@ -2,9 +2,9 @@ import sys
 import pandas as pd
 from collections import Counter
 
-sys.path.append(".")
+sys.path.append("..")
 from probs.newphoneProb import calcBaseProb
-from selphone.newselectPhonemes import selectPhonemes
+from selphone.selectPhonemes import selectPhonemes
 
 """ OUT OF DATE """
 

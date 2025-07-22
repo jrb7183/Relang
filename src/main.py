@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 sys.path.append("..")
 from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
-from selphone.newselectPhonemes import selectConsonants
+from selphone.selectPhonemes import selectConsonants
 from utils.tableFormatter import tableFormatter
 from utils.api.baseModels import ConsTable
 
