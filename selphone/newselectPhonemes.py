@@ -37,8 +37,8 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         # Place of Articulation
         places = probs["Place"] + []
-        if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
-            places = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
+        # if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
+        #     places = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
 
         places = list(filter(lambda place: place[0] in curr_permit, places))
         places.sort(reverse=True, key=lambda place: place[1])
@@ -56,11 +56,12 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             # print(sel_place, prob_adjust)
 
             for place in probs["Place"]:
-                if place[0] == sel_place:
-                    place[1] -= prob_adjust * (len(places) - 1)
+                if place in places:
+                    if place[0] == sel_place:
+                        place[1] -= prob_adjust * (len(places) - 1)
 
-                else:
-                    place[1] += prob_adjust
+                    else:
+                        place[1] += prob_adjust
 
         # Set place guarantees
         if guarantees["places"][sel_place] > 0:
@@ -73,29 +74,8 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         # Manner of Articulation
         manners = probs["Manner"] + []
-
-        # If the POA is palatal or velar, remove chance for taps and trills
-        if phoneme_bin == 19 or phoneme_bin == 9:
-            manners.pop(5)
-            manners.pop(5)
-
-            for manner in manners:
-                manner[1] += 0.04
-
-        # If POA is pharyngeal, remove nasals
-        if phoneme_bin == 25:
-            manners.pop(4)
-
-        # If the POA has no coronal component, remove chance for sibilants
-        if phoneme_bin & 2 == 0:
-            manners.pop(3)
-
-        # If POA is glottal, only allow obstruents and approximants
-        if phoneme_bin == 0:
-            manners = [[0, 0.58], [512, 0.04], [1024, 0.38]]
-
-        if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
-            manners = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
+        # if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
+        #     manners = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
 
         manners = list(filter(lambda manner: manner[0] in curr_permit, manners))
         if len(manners) == 0:
@@ -117,11 +97,12 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             # print(sel_manner, prob_adjust, "\n")
 
             for manner in probs["Manner"]:
-                if manner[0] == sel_manner:
-                    manner[1] -= prob_adjust * (len(manners) - 1)
+                if manner in manners:
+                    if manner[0] == sel_manner:
+                        manner[1] -= prob_adjust * (len(manners) - 1)
 
-                else:
-                    manner[1] += prob_adjust
+                    else:
+                        manner[1] += prob_adjust
 
         # Set manner guarantees
         if guarantees["manners"][sel_manner] > 0:
@@ -136,23 +117,21 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         if phoneme_bin != 0 and phoneme_bin != 512: # If not a glottal stop or affricate
             laryngeals = probs["Laryngeals"] + []
             
-            if manner == 0 and (sel_place == 2 or sel_place == 18 or sel_place == 4 or sel_place % 8 == 1 or sel_place == 25): # If not a plosive or is pharyngeal, remove chance for clicks and implosives
+            if manner != 0 or (sel_place == 2 or sel_place == 18 or sel_place == 4 or sel_place % 8 == 1 or sel_place == 25): # If not a plosive or in a place with no clicks, remove chance for clicks
                 laryngeals.pop(3)
                 laryngeals.pop()
 
-                if sel_place == 25: # If a plosive in a place with no clicks, remove clicks
+                if manner != 0 or sel_place == 25: # If not a plosive or is pharyngeal, remove implosives
                     laryngeals.pop()
 
             if phoneme_bin % 8 == 0: # Glottal fricative, only tenuis and voiced
-                laryngeals.pop(2)
-                laryngeals.pop(2)
+                laryngeals.pop(1)
+                laryngeals.pop(1)
                 laryngeals.pop()
-                print(laryngeals)
 
             if sel_place == 25 and manner % 2 == 0 and manner < 3: # Pharyngeal Plosive or Affricate
                 laryngeals.pop()
                 laryngeals.pop()
-                print(laryngeals)
 
             if guarantees["laryngeals"].total() + len(sel_phonemes) == num_phonemes:
                 laryngeals = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
@@ -176,11 +155,12 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 # print(sel_laryngeal, prob_adjust, "\n")
 
                 for laryngeal in probs["Laryngeals"]:
-                    if laryngeal[0] == sel_laryngeal:
-                        laryngeal[1] -= prob_adjust * (len(laryngeals) - 1)
+                    if laryngeal in laryngeals:
+                        if laryngeal[0] == sel_laryngeal:
+                            laryngeal[1] -= prob_adjust * (len(laryngeals) - 1)
 
-                    else:
-                        laryngeal[1] += prob_adjust
+                        else:
+                            laryngeal[1] += prob_adjust
 
         # Set laryngeal guarantees
         if guarantees["laryngeals"][sel_laryngeal] > 0:
@@ -262,8 +242,8 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             sel_phonemes += [(consonants.at[phoneme_bin, "Phoneme"], phoneme_bin)]
             consonants.at[phoneme_bin, "Selected"] = True
 
-        # Update Permitted Phonemes
-        permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes)       
+            # Update Permitted Phonemes
+            permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes)
         
 
     return sel_phonemes

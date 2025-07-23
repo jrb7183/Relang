@@ -52,12 +52,15 @@ def mannerCriteria(curr_num_manners: int, sel_phonemes: list[list]) -> list[int]
                     return [256]
 
         case 2: # Add fricatives/sibilants, taps, trills, and approximants
-            new_manners = [768, 1280, 1792]
+            new_manners =  [1792]
             if curr_place & 2 == 2: # Ignore sibilants for non coronals
                 new_manners += [1536]
             
             if curr_place % 8 != 2 and curr_place != 25: # Ignore fricatives for coronals and pharyngeals (since the latter already has them)
                 new_manners += [1024]
+
+            if curr_place % 10 != 9: # Ignore taps and trills for palatals and velars
+                new_manners += [768, 1280]
             
             match curr_place:
                 case 0 if curr_manner == 1024 and manners[512] > 5: # If glottal, skip to affricates 
@@ -72,16 +75,24 @@ def mannerCriteria(curr_num_manners: int, sel_phonemes: list[list]) -> list[int]
                 case 25 if places[25] >= 3 and manners[768] + manners[1280] + manners[1792] > 6: 
                     return new_manners
                 
-                case _ if manners[1024] + manners[1536] + manners[768] + manners[1280] + manners[1792] > 7:
+                case 26 | 2 | 17 if manners[1024] + manners[1536] + manners[768] + manners[1280] + manners[1792] > 7:
                     return new_manners
                 
-        case 5 if manners[512] > 8: # Add affricates to pharyngeals
-            return [512]
+        case 4: # Add affricates to velars
+            if curr_manner == 1024:
+                return [512]
+
+        case 5: # Add affricates to palatals and pharyngeals
+            if curr_place == 19 and curr_manner == 1024 and manners[512] > 2:
+                return [512]
+            
+            elif curr_place == 25 and manners[512] > 8:
+                return [512]
             
         case 6: # Add affricates
             if curr_manner in [1024, 1536]:
                 match curr_place:
-                    case 18 | 25: # Ignore post-alveolars and pharyngeals
+                    case 18 | 19 | 25: # Ignore post-alveolars, palatals, and pharyngeals
                         return []
                     
                     case 12 | 10 | 9:
@@ -92,8 +103,5 @@ def mannerCriteria(curr_num_manners: int, sel_phonemes: list[list]) -> list[int]
                     
                     case _ if manners[512] > 6:
                         return [512]
-
-        case 7 if curr_place == 19 and curr_manner == 1024 and manners[512] > 2: # Add affricates to palatals
-            return [512]
 
     return []
