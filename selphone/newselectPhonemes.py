@@ -48,20 +48,28 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         curr_permit = curr_permit[sel_place]
 
         # Select prob_adjust to lower max prob and increase others
-        if len(places) > 1:
-            prob_adjust = max(places[-1][1], 0.01)
-            if places[0][1] - (prob_adjust * (len(places) - 1)) < 0:
-                prob_adjust = places[0][1] / (len(places) - 1)
+        # if len(places) > 1:
+        #     prob_adjust = max(places[-1][1], 0.01)
+        #     if places[0][1] - (prob_adjust * (len(places) - 1)) < 0:
+        #         prob_adjust = places[0][1] / (len(places) - 1)
 
-            # print(sel_place, prob_adjust)
+        #     # print(sel_place, prob_adjust)
 
-            for place in probs["Place"]:
-                if place in places:
-                    if place[0] == sel_place:
-                        place[1] -= prob_adjust * (len(places) - 1)
+        #     for place in probs["Place"]:
+        #         if place in places:
+        #             if place[0] == sel_place:
+        #                 place[1] -= prob_adjust * (len(places) - 1)
 
-                    else:
-                        place[1] += prob_adjust
+        #             else:
+        #                 place[1] += prob_adjust
+
+        prob_adjust = 0.01
+        for place in probs["Place"]:
+            if place[0] == sel_place:
+                place[1] -= prob_adjust
+
+            else:
+                place[1] += prob_adjust
 
         # Set place guarantees
         if guarantees["places"][sel_place] > 0:
@@ -88,28 +96,37 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         curr_permit = curr_permit[sel_manner]
 
         # Select prob_adjust to lower max prob and increase others
-        if len(manners) > 1:
-            prob_adjust = max(manners[-1][1], 0.01)
-            if manners[0][1] - (prob_adjust * (len(manners) - 1)) < 0:
-                prob_adjust = manners[0][1] / (len(manners) - 1)
+        # if len(manners) > 1:
+        #     prob_adjust = max((guarantees["manners"][sel_manner] + 1) / len(sel_phonemes), 0.05)
+        #     if manners[0][1] - (prob_adjust * (len(manners) - 1)) < 0:
+        #         prob_adjust = manners[0][1] / (len(manners) - 1)
 
-            # print(manners)
-            # print(sel_manner, prob_adjust, "\n")
+        #     print(manners, guarantees["manners"][sel_manner])
+        #     print(sel_manner, prob_adjust, "\n")
 
-            for manner in probs["Manner"]:
-                if manner in manners:
-                    if manner[0] == sel_manner:
-                        manner[1] -= prob_adjust * (len(manners) - 1)
+        #     for manner in probs["Manner"]:
+        #         if manner in manners:
+        #             if manner[0] == sel_manner:
+        #                 manner[1] -= prob_adjust * (len(manners) - 1)
 
-                    else:
-                        manner[1] += prob_adjust
+        #             else:
+        #                 manner[1] += prob_adjust
+
+        prob_adjust = 0.05
+        for manner in probs["Manner"]:
+            if manner[0] == sel_manner:
+                manner[1] -= prob_adjust
+
+            else:
+                manner[1] += prob_adjust
 
         # Set manner guarantees
-        if guarantees["manners"][sel_manner] > 0:
-            guarantees["manners"][sel_manner] -= 1
+        # guarantees["manners"][sel_manner] += 1
+        # if guarantees["manners"][sel_manner] > 0:
+        #     guarantees["manners"][sel_manner] -= 1
 
-        else:
-            guarantees["manners"][sel_manner] = min(num_phonemes // 4, num_phonemes - len(sel_phonemes) - guarantees["manners"].total() - 1)
+        # else:
+        #     guarantees["manners"][sel_manner] = min(num_phonemes // 4, num_phonemes - len(sel_phonemes) - guarantees["manners"].total() - 1)
         
 
         # Laryngeal Features
@@ -244,6 +261,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
             # Update Permitted Phonemes
             permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes)
+
+        # else:
+        #     guarantees["manners"][sel_manner] -= 1
         
 
     return sel_phonemes
