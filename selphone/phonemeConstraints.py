@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append("..")
-from selphone.constraintCriteria import placeCriteria, mannerCriteria
+from selphone.constraintCriteria import placeCriteria, mannerCriteria, laryngealCriteria
 
 """
 Updates the phonemes permitted to be selected by the Phoneme Selector.
@@ -47,50 +47,8 @@ def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]],
                 curr_manners[new_manner] = [128]
         
     # Update Laryngeal Permissions
-    laryngeal = (phoneme_bin & (7 << 5)) % 256
     curr_laryngeals = curr_manners[manner]
-
-    is_sonorant = phoneme_bin & 256 == 256
-    match len(curr_laryngeals):
-        case 1: # If obstruent, add voiced and aspirated features; if sonorant add tenuis and breathy features
-            if is_sonorant:
-                curr_laryngeals += [0, 160]
-            else:
-                curr_laryngeals += [32, 128]
-        
-        case 3: # If obstruent, add breathy, ejective, and/or implosive features; if sonorant add aspirated features
-            if is_sonorant:
-                if laryngeal == 0:
-                    curr_laryngeals += [32]
-
-            elif laryngeal in [32, 128]:
-                curr_laryngeals += [64]
-                
-                if laryngeal == 32:
-                    curr_laryngeals += [160]
-
-                if manner == 0:
-                    curr_laryngeals += [192]
-
-        case 4: # Ignore sonorants; add breathy feature for obstruents
-            if not is_sonorant:
-                if laryngeal == 32:
-                    curr_laryngeals += [160]
-
-        case 5: # Ignore everything but plosives; add breathy or click features
-            if manner == 0:
-                if laryngeal == 32:
-                    curr_laryngeals += [160]
-                
-                if laryngeal in [64, 192]:
-                    curr_laryngeals += [96, 224]
-
-        case 6: # Add click features
-            if laryngeal in [64, 192]:
-                    curr_laryngeals += [96, 224]
-
-        case 7: # Add breathy feature
-            if laryngeal == 32:
-                    curr_laryngeals += [160]
+    laryngeals = laryngealCriteria(curr_laryngeals, sel_phonemes)
+    curr_laryngeals += laryngeals
     
     return curr_permit

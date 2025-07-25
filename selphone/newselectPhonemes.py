@@ -63,12 +63,13 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         #             else:
         #                 place[1] += prob_adjust
 
-        prob_adjust = 0.01
+        prob_adjust = 0.005
+        sel_major_place = sel_place % 8
         for place in probs["Place"]:
             if place[0] == sel_place:
                 place[1] -= prob_adjust
 
-            else:
+            elif place[0] % 8 != sel_major_place:
                 place[1] += prob_adjust
 
         # Set place guarantees
@@ -112,7 +113,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         #             else:
         #                 manner[1] += prob_adjust
 
-        prob_adjust = 0.05
+        prob_adjust = 0.005
         for manner in probs["Manner"]:
             if manner[0] == sel_manner:
                 manner[1] -= prob_adjust
@@ -121,7 +122,6 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 manner[1] += prob_adjust
 
         # Set manner guarantees
-        # guarantees["manners"][sel_manner] += 1
         # if guarantees["manners"][sel_manner] > 0:
         #     guarantees["manners"][sel_manner] -= 1
 
@@ -131,60 +131,51 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         # Laryngeal Features
         manner = (phoneme_bin >> 8)
-        if phoneme_bin != 0 and phoneme_bin != 512: # If not a glottal stop or affricate
-            laryngeals = probs["Laryngeals"] + []
-            
-            if manner != 0 or (sel_place == 2 or sel_place == 18 or sel_place == 4 or sel_place % 8 == 1 or sel_place == 25): # If not a plosive or in a place with no clicks, remove chance for clicks
-                laryngeals.pop(3)
-                laryngeals.pop()
+        laryngeals = probs["Laryngeals"] + []
 
-                if manner != 0 or sel_place == 25: # If not a plosive or is pharyngeal, remove implosives
-                    laryngeals.pop()
+        # if guarantees["laryngeals"].total() + len(sel_phonemes) == num_phonemes:
+        #     laryngeals = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
 
-            if phoneme_bin % 8 == 0: # Glottal fricative, only tenuis and voiced
-                laryngeals.pop(1)
-                laryngeals.pop(1)
-                laryngeals.pop()
+        laryngeals = list(filter(lambda laryngeal: laryngeal[0] in curr_permit, laryngeals))
+        if len(laryngeals) == 0:
+            continue
 
-            if sel_place == 25 and manner % 2 == 0 and manner < 3: # Pharyngeal Plosive or Affricate
-                laryngeals.pop()
-                laryngeals.pop()
+        laryngeals.sort(reverse=True, key= lambda laryngeal : laryngeal[1])
 
-            if guarantees["laryngeals"].total() + len(sel_phonemes) == num_phonemes:
-                laryngeals = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
+        sel_laryngeal = laryngeals[0][0]
+        phoneme_bin += sel_laryngeal
 
-            laryngeals = list(filter(lambda laryngeal: laryngeal[0] in curr_permit, laryngeals))
-            if len(laryngeals) == 0:
-                continue
+        # Select prob_adjust to lower max prob and increase others
+        # if len(laryngeals) > 1:
+        #     prob_adjust = max(laryngeals[-1][1], 0.01)
+        #     if laryngeals[0][1] - (prob_adjust * (len(laryngeals) - 1)) < 0:
+        #         prob_adjust = laryngeals[0][1] / (len(laryngeals) - 1)
 
-            laryngeals.sort(reverse=True, key= lambda laryngeal : laryngeal[1])
+        #     # print(laryngeals)
+        #     # print(sel_laryngeal, prob_adjust, "\n")
 
-            sel_laryngeal = laryngeals[0][0]
-            phoneme_bin += sel_laryngeal
+        #     for laryngeal in probs["Laryngeals"]:
+        #         if laryngeal in laryngeals:
+        #             if laryngeal[0] == sel_laryngeal:
+        #                 laryngeal[1] -= prob_adjust * (len(laryngeals) - 1)
 
-            # Select prob_adjust to lower max prob and increase others
-            if len(laryngeals) > 1:
-                prob_adjust = max(laryngeals[-1][1], 0.01)
-                if laryngeals[0][1] - (prob_adjust * (len(laryngeals) - 1)) < 0:
-                    prob_adjust = laryngeals[0][1] / (len(laryngeals) - 1)
+        #             else:
+        #                 laryngeal[1] += prob_adjust
 
-                # print(laryngeals)
-                # print(sel_laryngeal, prob_adjust, "\n")
+        prob_adjust = 0.05
+        for laryng in probs["Laryngeals"]:
+            if laryng[0] == sel_laryngeal:
+                laryng[1] -= prob_adjust
 
-                for laryngeal in probs["Laryngeals"]:
-                    if laryngeal in laryngeals:
-                        if laryngeal[0] == sel_laryngeal:
-                            laryngeal[1] -= prob_adjust * (len(laryngeals) - 1)
+            else:
+                laryng[1] += prob_adjust
 
-                        else:
-                            laryngeal[1] += prob_adjust
+        # # Set laryngeal guarantees
+        # if guarantees["laryngeals"][sel_laryngeal] > 0:
+        #     guarantees["laryngeals"][sel_laryngeal] -= 1
 
-        # Set laryngeal guarantees
-        if guarantees["laryngeals"][sel_laryngeal] > 0:
-            guarantees["laryngeals"][sel_laryngeal] -= 1
-
-        else:
-            guarantees["laryngeals"][sel_laryngeal] = min(num_phonemes // 3, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
+        # else:
+        #     guarantees["laryngeals"][sel_laryngeal] = min(num_phonemes // 3, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
 
 
         # Laterality
@@ -261,9 +252,6 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
             # Update Permitted Phonemes
             permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes)
-
-        # else:
-        #     guarantees["manners"][sel_manner] -= 1
         
 
     return sel_phonemes
