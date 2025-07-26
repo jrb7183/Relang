@@ -1,8 +1,9 @@
 import sys
 
 sys.path.append("..")
-from selphone.constraintCriteria import placeCriteria, mannerCriteria, laryngealCriteria
-
+from selphone.constraintCriteria.placeCriteria import placeCriteria
+from selphone.constraintCriteria.mannerCriteria import mannerCriteria
+from selphone. constraintCriteria.laryngealCriteria import laryngealCriteria
 """
 Updates the phonemes permitted to be selected by the Phoneme Selector.
 These constraints allow the selector to produce more naturalistic sound
