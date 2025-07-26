@@ -1,4 +1,8 @@
+import sys
 from collections import Counter
+
+sys.path.append("../..")
+from selphone.constraintCriteria.sonorantLaryngealCriteria import sonorantLaryngeals
 
 """
 This criteria function helps determine how to update the current constraints for the
@@ -22,39 +26,7 @@ def laryngealCriteria(curr_laryngs: list[int], sel_phonemes: list[list]) -> list
     
 
     if is_sonorant: # Sonorants
-        match curr_num_laryngs:
-            case 1: # Add voiceless sonorants
-                if curr_manner == 256:
-                    match curr_place:
-
-                        # Only add voiceless nasals if there is a voicing contrast in the plosives and at least 3 (voiced) nasals have already been selected
-                        case 12 | 10 | 9 if mals[128] > 0 and manners[256] > 2:
-                            return [0]
-
-                        case _ if mals[256] > 2:
-                            return [0]
-                        
-                else: # Only add voiceless non-nasal sonorants if at least 3 voiceless nasals have been selected 
-                    if mals[256] > 2:
-                        return [0]
-
-            case 2 | 3: # Add aspirated/breathy sonorants
-                laryngeals = [0, 32, 160]
-                old_laryng = laryngeals[curr_num_laryngs - 2]
-                new_laryng = laryngeals[curr_num_laryngs - 1]
-                if curr_manner == 256:
-                    match curr_place:
-                        
-                        # Only add aspirated/breathy nasals if there is an aspirated/breathy contrast in the plosives and at least 3 voiceless nasals have already been selected
-                        case 12 | 10 | 9 if mals[new_laryng] > 0 and mals[256 + old_laryng] > 2:
-                            return [0]
-
-                        case _ if mals[256 + new_laryng] > 2:
-                            return [0]
-                        
-                else: # Only add aspirated/breathy non-nasal sonorants if at least 3 aspirated/breathy nasals have been selected 
-                    if mals[256 + new_laryng] > 2:
-                        return [0]
+        return sonorantLaryngeals(curr_num_laryngs, curr_manner, curr_place, manners, mals)
                     
     else: # Obstruents
         match curr_num_laryngs:
@@ -63,8 +35,8 @@ def laryngealCriteria(curr_laryngs: list[int], sel_phonemes: list[list]) -> list
                     if curr_place in [12, 10, 9]:
                         return [32, 128]
 
-                    if curr_place not in [0, 25]:
-                        if mals[128] > 2:
+                    if curr_place != 0:
+                        if mals[128] > 2 and curr_place != 25:
                             if mals[32] > 2:
                                 return [32, 128]
 
@@ -95,7 +67,7 @@ def laryngealCriteria(curr_laryngs: list[int], sel_phonemes: list[list]) -> list
                 if curr_place == 25 and mals[64] > 8:
                     return [64]
                 
-                elif curr_place == 0:
+                elif curr_manner == 0:
                     if 32 in curr_laryngs:
                         if mals[128] > 2:
                             return [128]
@@ -104,7 +76,7 @@ def laryngealCriteria(curr_laryngs: list[int], sel_phonemes: list[list]) -> list
                         if mals[32] > 2:
                             return [32]
                         
-                else:
+                elif curr_place != 0:
                     if 32 in curr_laryngs:
                         if mals[128] > 2 and pals[128 + curr_place] > 1:
                             return [128]
