@@ -30,10 +30,8 @@ def laryngealCriteria(curr_laryngs: list[int], sel_phonemes: list[list]) -> list
     # Determine new laryngeal constraints based on information found
     if is_sonorant:
         return sonorantLaryngeals(curr_num_laryngs, curr_manner, curr_place, mals)             
-    else:
-        if curr_manner == 0:
-            return plosiveLaryngeals(curr_laryngs, curr_num_laryngs, curr_place, mals)
-        else:
-            return npObstruentLaryngeals(curr_laryngs, curr_num_laryngs, curr_manner, curr_place, mals, pals)
-
-    return []
+    
+    if curr_manner == 0:
+        return plosiveLaryngeals(curr_laryngs, curr_num_laryngs, curr_place, mals)
+    
+    return npObstruentLaryngeals(curr_laryngs, curr_num_laryngs, curr_manner, curr_place, mals, pals)
