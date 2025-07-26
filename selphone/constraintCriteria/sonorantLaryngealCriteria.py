@@ -2,14 +2,14 @@ from collections import Counter
 
 """ Helper function for laryngealCriteria. Handles laryngeal criteria for sonorants"""
 
-def sonorantLaryngeals(curr_num_laryngs: int, curr_manner: int, curr_place: int, manners: Counter, mals: Counter) -> list[int]:
+def sonorantLaryngeals(curr_num_laryngs: int, curr_manner: int, curr_place: int, mals: Counter) -> list[int]:
     match curr_num_laryngs:
         case 1: # Add voiceless sonorants
             if curr_manner == 256:
                 match curr_place:
 
                     # Only add voiceless nasals if there is a voicing contrast in the plosives and at least 3 (voiced) nasals have already been selected
-                    case 12 | 10 | 9 if mals[128] > 0 and manners[256] > 2:
+                    case 12 | 10 | 9 if mals[128] > 0 and mals[256 + 128] > 2:
                         return [0]
 
                     case _ if mals[256] > 2:

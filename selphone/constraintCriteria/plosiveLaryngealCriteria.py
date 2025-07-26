@@ -2,7 +2,7 @@ from collections import Counter
 
 """ Helper function for laryngealCriteria. Handles laryngeal criteria for plosives"""
 
-def sonorantLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_manner: int, curr_place: int, manners: Counter, mals: Counter) -> list[int]:
+def plosiveLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_place: int, mals: Counter) -> list[int]:
     match curr_num_laryngs:
         case 1: # Add aspirated and voiced features
             if curr_place in [12, 10, 9]:
@@ -18,7 +18,7 @@ def sonorantLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_mann
                 if mals[32] > 2:
                     return [32]
             
-        case 2: # Add ejective features to pharyngeal plosives and affricates (curr_laryngs = [0, 32] or [0, 128])
+        case 2: # Add ejective features to pharyngeal plosives (curr_laryngs = [0, 32] or [0, 128])
             if curr_place == 25:
                 if mals[64] > 8:
                     return [64]
