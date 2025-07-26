@@ -212,7 +212,14 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
             # Suprasegmentals
             if (phoneme_bin >> 11) == 0: # Can't be nasal
-                suprasegmentals = probs["Suprasegmentals"]
+                suprasegmentals = probs["Suprasegmentals"] + []
+                
+                # No velarized velars, palatalized palatals, or pharyngealized pharyngeals
+                if sel_place in [19, 9, 25]:
+                    i = [19, 9, 25].index(sel_place) + 2
+                    suprasegmentals[0][1] += suprasegmentals[i][1]
+                    suprasegmentals.pop(i)
+
                 sel_num = random.random()
                 sel = 0
 
@@ -251,7 +258,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             consonants.at[phoneme_bin, "Selected"] = True
 
             # Update Permitted Phonemes
-            permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes)
+            permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes, num_phonemes)
         
 
     return sel_phonemes
