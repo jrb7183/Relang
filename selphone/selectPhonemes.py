@@ -7,6 +7,7 @@ sys.path.append("..")
 from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
 from selphone.phonemeConstraints import updateConstraints
+from selphone.rhoticLimiter import isRhotic, removeRhotics
 
 
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
@@ -21,6 +22,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
     }
     permit_phones = {26: {0: [0]}, 10: {0: [0]}}
     loop_count = 0
+    maxed_rhotics = False
 
     while len(sel_phonemes) < num_phonemes:
         curr_permit = dict(permit_phones)
@@ -45,6 +47,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         places.sort(reverse=True, key=lambda place: place[1])
 
         sel_place = places[0][0]
+        if len(places) > 1:
+            sel_place = random.choice(places[:2])[0]
+
         phoneme_bin += sel_place
         curr_permit = curr_permit[sel_place]
 
@@ -201,6 +206,10 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                     else:
                         guarantees["laterals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["laterals"] - 1)
        
+        # Filter out rhotics if max has been met
+        if maxed_rhotics and isRhotic(phoneme_bin):
+            continue 
+
         if consonants.at[phoneme_bin, "Selected"]: # Require phonemic equivalent without supresegmentals before adding ones with them
             # Nasality
             if manner != 1: # Not a nasal
@@ -271,6 +280,8 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
             # Update Permitted Phonemes
             permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes, num_phonemes)
+            if isRhotic(phoneme_bin):
+                [permit_phones, maxed_rhotics] = removeRhotics(sel_phonemes, num_phonemes, permit_phones)
 
         else:
             loop_count += 1
