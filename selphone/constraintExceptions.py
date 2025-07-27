@@ -35,7 +35,7 @@ def manageExceptions(place: int, manner: int, curr_permit: dict[int, dict[int, l
     # Dental and alveolar consonants of the same manner should not co-occur (for the purposes of this model)
     if place % 16 == 10:
         opp_place = place ^ 16 # Dental and alveolar places are differentiated by their 5th bit
-        if manner in curr_permit[opp_place] and num_phonemes:
+        if manner in curr_permit[opp_place] and num_phonemes < 37:
             del curr_permit[opp_place][manner]
 
         # Allow initial possibility of sibilant fricatives, taps, trills, and approximants in alveolar place (all are currently added at once so check only needs to look for one)

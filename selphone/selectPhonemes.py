@@ -20,6 +20,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         "suprasegmentals": Counter()
     }
     permit_phones = {26: {0: [0]}, 10: {0: [0]}}
+    loop_count = 0
 
     while len(sel_phonemes) < num_phonemes:
         curr_permit = dict(permit_phones)
@@ -93,6 +94,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         manners.sort(reverse=True, key= lambda manner : manner[1])
 
         sel_manner = manners[0][0]
+        if len(manners) > 1:
+            sel_manner = random.choice(manners[:2])[0]
+
         phoneme_bin += sel_manner
         curr_permit = curr_permit[sel_manner]
 
@@ -143,6 +147,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         laryngeals.sort(reverse=True, key= lambda laryngeal : laryngeal[1])
 
         sel_laryngeal = laryngeals[0][0]
+        if len(laryngeals) > 1:
+            sel_laryngeal = random.choice(laryngeals[:2])[0]
+
         phoneme_bin += sel_laryngeal
 
         # Select prob_adjust to lower max prob and increase others
@@ -213,11 +220,11 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             # Suprasegmentals
             if (phoneme_bin >> 11) == 0: # Can't be nasal
                 suprasegmentals = probs["Suprasegmentals"] + []
-                
+
                 # No velarized velars, palatalized palatals, or pharyngealized pharyngeals
                 if sel_place in [19, 9, 25]:
                     i = [19, 9, 25].index(sel_place) + 2
-                    suprasegmentals[0][1] += suprasegmentals[i][1]
+                    suprasegmentals[0][1] += suprasegmentals[i][1] + 0.0001
                     suprasegmentals.pop(i)
 
                 sel_num = random.random()
@@ -227,9 +234,12 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                     sel_num = 0
                     key = guarantees["suprasegmentals"].most_common(1)[0][0]
 
-                    while suprasegmentals[sel][0] != key:
+                    while sel < len(suprasegmentals) and suprasegmentals[sel][0] != key:
                         sel_num += suprasegmentals[sel][1]
                         sel += 1
+
+                    if sel == len(suprasegmentals):
+                        sel_num = 0
 
                     sel = 0
 
@@ -257,9 +267,16 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             sel_phonemes += [(consonants.at[phoneme_bin, "Phoneme"], phoneme_bin)]
             consonants.at[phoneme_bin, "Selected"] = True
 
+            loop_count = 0
+
             # Update Permitted Phonemes
             permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes, num_phonemes)
-        
+
+        else:
+            loop_count += 1
+            if loop_count > 10**4:
+                print(f"Error: only {len(sel_phonemes)} consonants could be generated.")
+                break
 
     return sel_phonemes
 
