@@ -40,10 +40,13 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         # Place of Articulation
         places = probs["Place"] + []
-        # if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
-        #     places = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
 
         places = list(filter(lambda place: place[0] in curr_permit, places))
+        # if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
+        #     temp = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
+        #     if len(temp) > 0:
+        #         places = temp
+
         places.sort(reverse=True, key=lambda place: place[1])
 
         sel_place = places[0][0]
@@ -84,17 +87,20 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         else:
             if sel_place != 0: # Not glottal
-                guarantees["places"][sel_place] = min(num_phonemes // 5, num_phonemes - len(sel_phonemes) - guarantees["places"].total() - 1)
+                guarantees["places"][sel_place] = min(2, num_phonemes - len(sel_phonemes) - guarantees["places"].total() - 1)
 
 
         # Manner of Articulation
         manners = probs["Manner"] + []
-        # if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
-        #     manners = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
 
         manners = list(filter(lambda manner: manner[0] in curr_permit, manners))
         if len(manners) == 0:
             continue
+
+        if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
+            temp = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
+            if len(temp) > 0:
+                manners = temp
 
         manners.sort(reverse=True, key= lambda manner : manner[1])
 
@@ -131,23 +137,27 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 manner[1] += prob_adjust
 
         # Set manner guarantees
-        # if guarantees["manners"][sel_manner] > 0:
-        #     guarantees["manners"][sel_manner] -= 1
+        if guarantees["manners"][sel_manner] > 0:
+            guarantees["manners"][sel_manner] -= 1
 
-        # else:
-        #     guarantees["manners"][sel_manner] = min(num_phonemes // 4, num_phonemes - len(sel_phonemes) - guarantees["manners"].total() - 1)
+        else:
+            guarantees["manners"][sel_manner] = min(2, num_phonemes - len(sel_phonemes) - guarantees["manners"].total() - 1)
         
 
         # Laryngeal Features
         manner = (phoneme_bin >> 8)
         laryngeals = probs["Laryngeals"] + []
 
-        # if guarantees["laryngeals"].total() + len(sel_phonemes) == num_phonemes:
-        #     laryngeals = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
+        
 
         laryngeals = list(filter(lambda laryngeal: laryngeal[0] in curr_permit, laryngeals))
         if len(laryngeals) == 0:
             continue
+
+        if guarantees["laryngeals"].total() > 0:
+            temp = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
+            if len(temp) != 0:
+                laryngeals = temp
 
         laryngeals.sort(reverse=True, key= lambda laryngeal : laryngeal[1])
 
@@ -183,11 +193,11 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 laryng[1] += prob_adjust
 
         # # Set laryngeal guarantees
-        # if guarantees["laryngeals"][sel_laryngeal] > 0:
-        #     guarantees["laryngeals"][sel_laryngeal] -= 1
+        if guarantees["laryngeals"][sel_laryngeal] > 0:
+            guarantees["laryngeals"][sel_laryngeal] -= 1
 
-        # else:
-        #     guarantees["laryngeals"][sel_laryngeal] = min(num_phonemes // 3, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
+        else:
+            guarantees["laryngeals"][sel_laryngeal] = min(2, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
 
 
         # Laterality
