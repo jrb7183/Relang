@@ -7,6 +7,7 @@ sys.path.append("..")
 from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
 from selphone.phonemeConstraints import updateConstraints
+from selphone.rhoticLimiter import isRhotic, removeRhotics
 
 
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
@@ -20,6 +21,8 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         "suprasegmentals": Counter()
     }
     permit_phones = {26: {0: [0]}, 10: {0: [0]}}
+    loop_count = 0
+    maxed_rhotics = False
 
     while len(sel_phonemes) < num_phonemes:
         curr_permit = dict(permit_phones)
@@ -37,13 +40,19 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         # Place of Articulation
         places = probs["Place"] + []
-        # if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
-        #     places = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
 
         places = list(filter(lambda place: place[0] in curr_permit, places))
+        # if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
+        #     temp = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
+        #     if len(temp) > 0:
+        #         places = temp
+
         places.sort(reverse=True, key=lambda place: place[1])
 
         sel_place = places[0][0]
+        if len(places) > 1:
+            sel_place = random.choice(places[:2])[0]
+
         phoneme_bin += sel_place
         curr_permit = curr_permit[sel_place]
 
@@ -78,21 +87,27 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         else:
             if sel_place != 0: # Not glottal
-                guarantees["places"][sel_place] = min(num_phonemes // 5, num_phonemes - len(sel_phonemes) - guarantees["places"].total() - 1)
+                guarantees["places"][sel_place] = min(2, num_phonemes - len(sel_phonemes) - guarantees["places"].total() - 1)
 
 
         # Manner of Articulation
         manners = probs["Manner"] + []
-        # if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
-        #     manners = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
 
         manners = list(filter(lambda manner: manner[0] in curr_permit, manners))
         if len(manners) == 0:
             continue
 
+        if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
+            temp = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
+            if len(temp) > 0:
+                manners = temp
+
         manners.sort(reverse=True, key= lambda manner : manner[1])
 
         sel_manner = manners[0][0]
+        if len(manners) > 1:
+            sel_manner = random.choice(manners[:2])[0]
+
         phoneme_bin += sel_manner
         curr_permit = curr_permit[sel_manner]
 
@@ -122,27 +137,34 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 manner[1] += prob_adjust
 
         # Set manner guarantees
-        # if guarantees["manners"][sel_manner] > 0:
-        #     guarantees["manners"][sel_manner] -= 1
+        if guarantees["manners"][sel_manner] > 0:
+            guarantees["manners"][sel_manner] -= 1
 
-        # else:
-        #     guarantees["manners"][sel_manner] = min(num_phonemes // 4, num_phonemes - len(sel_phonemes) - guarantees["manners"].total() - 1)
+        else:
+            guarantees["manners"][sel_manner] = min(2, num_phonemes - len(sel_phonemes) - guarantees["manners"].total() - 1)
         
 
         # Laryngeal Features
         manner = (phoneme_bin >> 8)
         laryngeals = probs["Laryngeals"] + []
 
-        # if guarantees["laryngeals"].total() + len(sel_phonemes) == num_phonemes:
-        #     laryngeals = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
+        
 
         laryngeals = list(filter(lambda laryngeal: laryngeal[0] in curr_permit, laryngeals))
         if len(laryngeals) == 0:
             continue
 
+        if guarantees["laryngeals"].total() > 0:
+            temp = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
+            if len(temp) != 0:
+                laryngeals = temp
+
         laryngeals.sort(reverse=True, key= lambda laryngeal : laryngeal[1])
 
         sel_laryngeal = laryngeals[0][0]
+        if len(laryngeals) > 1:
+            sel_laryngeal = random.choice(laryngeals[:2])[0]
+
         phoneme_bin += sel_laryngeal
 
         # Select prob_adjust to lower max prob and increase others
@@ -171,11 +193,11 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 laryng[1] += prob_adjust
 
         # # Set laryngeal guarantees
-        # if guarantees["laryngeals"][sel_laryngeal] > 0:
-        #     guarantees["laryngeals"][sel_laryngeal] -= 1
+        if guarantees["laryngeals"][sel_laryngeal] > 0:
+            guarantees["laryngeals"][sel_laryngeal] -= 1
 
-        # else:
-        #     guarantees["laryngeals"][sel_laryngeal] = min(num_phonemes // 3, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
+        else:
+            guarantees["laryngeals"][sel_laryngeal] = min(2, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
 
 
         # Laterality
@@ -194,6 +216,10 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                     else:
                         guarantees["laterals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["laterals"] - 1)
        
+        # Filter out rhotics if max has been met
+        if maxed_rhotics and isRhotic(phoneme_bin):
+            continue 
+
         if consonants.at[phoneme_bin, "Selected"]: # Require phonemic equivalent without supresegmentals before adding ones with them
             # Nasality
             if manner != 1: # Not a nasal
@@ -212,7 +238,14 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
             # Suprasegmentals
             if (phoneme_bin >> 11) == 0: # Can't be nasal
-                suprasegmentals = probs["Suprasegmentals"]
+                suprasegmentals = probs["Suprasegmentals"] + []
+
+                # No velarized velars, palatalized palatals, or pharyngealized pharyngeals
+                if sel_place in [19, 9, 25]:
+                    i = [19, 9, 25].index(sel_place) + 2
+                    suprasegmentals[0][1] += suprasegmentals[i][1] + 0.0001
+                    suprasegmentals.pop(i)
+
                 sel_num = random.random()
                 sel = 0
 
@@ -220,9 +253,12 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                     sel_num = 0
                     key = guarantees["suprasegmentals"].most_common(1)[0][0]
 
-                    while suprasegmentals[sel][0] != key:
+                    while sel < len(suprasegmentals) and suprasegmentals[sel][0] != key:
                         sel_num += suprasegmentals[sel][1]
                         sel += 1
+
+                    if sel == len(suprasegmentals):
+                        sel_num = 0
 
                     sel = 0
 
@@ -250,9 +286,18 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             sel_phonemes += [(consonants.at[phoneme_bin, "Phoneme"], phoneme_bin)]
             consonants.at[phoneme_bin, "Selected"] = True
 
+            loop_count = 0
+
             # Update Permitted Phonemes
-            permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes)
-        
+            permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes, num_phonemes)
+            if isRhotic(phoneme_bin):
+                [permit_phones, maxed_rhotics] = removeRhotics(sel_phonemes, num_phonemes, permit_phones)
+
+        else:
+            loop_count += 1
+            if loop_count > 10**4:
+                print(f"Error: only {len(sel_phonemes)} consonants could be generated.")
+                break
 
     return sel_phonemes
 

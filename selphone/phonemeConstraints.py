@@ -3,7 +3,9 @@ import sys
 sys.path.append("..")
 from selphone.constraintCriteria.placeCriteria import placeCriteria
 from selphone.constraintCriteria.mannerCriteria import mannerCriteria
-from selphone. constraintCriteria.laryngealCriteria import laryngealCriteria
+from selphone.constraintCriteria.laryngealCriteria import laryngealCriteria
+from selphone.constraintExceptions import manageExceptions
+
 """
 Updates the phonemes permitted to be selected by the Phoneme Selector.
 These constraints allow the selector to produce more naturalistic sound
@@ -19,7 +21,7 @@ Nevertheless, Relang is aiming to make sketches for sound inventories of
 proto-languages, which should be more regular.
 """
 
-def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]], sel_phonemes: list[list]):
+def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]], sel_phonemes: list[list], num_phonemes):
     
     # Update Place Permissions
     place = phoneme_bin % 32
@@ -36,9 +38,7 @@ def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]],
     # Update Manner Permissions
     manner = (phoneme_bin & (7 << 8)) % 2048
     curr_manners = curr_permit[place]
-
-    curr_num_manners = len(list(curr_manners.keys()))
-    manners = mannerCriteria(curr_num_manners, sel_phonemes)
+    manners = mannerCriteria(curr_manners, sel_phonemes)
 
     if len(manners) > 0:
         for new_manner in manners:
@@ -46,6 +46,8 @@ def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]],
                 curr_manners[new_manner] = [0]
             else:
                 curr_manners[new_manner] = [128]
+
+    curr_permit = manageExceptions(place, manner, curr_permit, manners, num_phonemes)
         
     # Update Laryngeal Permissions
     curr_laryngeals = curr_manners[manner]
