@@ -1,5 +1,6 @@
 import sys
 import uvicorn
+import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -23,12 +24,18 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-def main(num):
+def main(num, use_relang = False):
     # temp = float(sys.argv[2])
 
     consonants = loadPhonemes(True)
     # print(consonants[(consonants.index % 8 == 0) & (consonants.index < 1300)])
-    probs = relangProbs()
+    probs = {}
+    if use_relang:
+        probs = relangProbs()
+
+    else:
+        with open("../data/baseProbs.json", "r", encoding="utf-8") as f:
+            probs = json.load(f)
     
     return selectConsonants(consonants, probs["Consonants"], num)
 
