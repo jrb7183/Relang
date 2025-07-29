@@ -153,7 +153,7 @@ def ipaToBinary(phonology, cons):
 
         if temp != -1:
             bin_phones += [temp]
-            print(f"{phoneme}: {bin(temp)}")
+            # print(f"{phoneme}: {bin(temp)}")
 
     return bin_phones
 

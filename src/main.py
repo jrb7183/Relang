@@ -34,13 +34,15 @@ def main(num, use_relang = False):
     if use_relang:
         p = ["m", "n", "ŋ", "p", "t", "k", "s", "w", "l", "j"]
         p = ipaToBinary(p, True)
-        probs = relangProbs([p])
-        return []
+        q = ["b", "d", "g", "p", "t", "k", "s", "w", "l", "j"]
+        q = ipaToBinary(q, True)
+        probs = relangProbs([p, q])
+        return selectConsonants(consonants, probs, num)
 
-    else:
-        with open("../data/baseProbs.json", "r", encoding="utf-8") as f:
-            probs = json.load(f)
-    
+
+    with open("../data/baseProbs.json", "r", encoding="utf-8") as f:
+        probs = json.load(f)
+
     return selectConsonants(consonants, probs["Consonants"], num)
 
 temp_cons = {"Consonants": [""]}
