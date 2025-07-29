@@ -10,6 +10,7 @@ from utils.phonemeLoader import loadPhonemes
 from selphone.selectPhonemes import selectConsonants
 from utils.tableFormatter import tableFormatter
 from utils.api.baseModels import ConsTable
+from utils.ipaDecoder import ipaToBinary
 
 app = FastAPI()
 origins = [
@@ -31,7 +32,10 @@ def main(num, use_relang = False):
     # print(consonants[(consonants.index % 8 == 0) & (consonants.index < 1300)])
     probs = {}
     if use_relang:
-        probs = relangProbs()
+        p = ["m", "n", "ŋ", "p", "t", "k", "s", "w", "l", "j"]
+        p = ipaToBinary(p, True)
+        probs = relangProbs([p])
+        return []
 
     else:
         with open("../data/baseProbs.json", "r", encoding="utf-8") as f:
@@ -61,7 +65,8 @@ if __name__ == "__main__":
     
     else:
         num = int(sys.argv[2])
-        sel_phones = main(num)
+        use_relang = sys.argv[3] is not None
+        sel_phones = main(num, use_relang)
         
         for i in range(len(sel_phones)):
             print(f"{i+1}.\t{sel_phones[i][0]}\n\t{sel_phones[i][1]}")
