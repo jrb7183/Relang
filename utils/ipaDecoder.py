@@ -67,10 +67,6 @@ def consDecoder(phoneme, corresp_dict):
         elif supr == 'ˤ':
             temp |= (3 << 14)
 
-    # Nasals
-    if (temp >> 8) & 7 == 1:
-        temp += 2**11
-
     return temp
 
 
@@ -134,11 +130,11 @@ def vowelDecoder(phoneme, corresp_dict):
 def ipaToBinary(phonology, cons):
     corresp_dict = {}
     if cons:
-        with open("utils/consCorrespondences.json", "r", encoding="utf-8") as f:
+        with open("../data/consCorrespondences.json", "r", encoding="utf-8") as f:
             corresp_dict = json.load(f)
 
     else:
-        with open("utils/vowelCorrespondences.json", "r", encoding="utf-8") as f:
+        with open("../data/vowelCorrespondences.json", "r", encoding="utf-8") as f:
             corresp_dict = json.load(f)
 
     # Find phoneme and convert to hex
@@ -157,9 +153,9 @@ def ipaToBinary(phonology, cons):
 
         if temp != -1:
             bin_phones += [temp]
-            print(f"{phoneme}: {bin(temp)}")
+            # print(f"{phoneme}: {bin(temp)}")
 
-
+    return bin_phones
 
 
 if __name__ == "__main__":
