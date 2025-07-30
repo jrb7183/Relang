@@ -67,7 +67,7 @@ if __name__ == "__main__":
     
     else:
         num = int(sys.argv[2])
-        use_relang = sys.argv[3] is not None
+        use_relang = sys.argv[3] != "base"
         sel_phones = main(num, use_relang)
         
         for i in range(len(sel_phones)):
