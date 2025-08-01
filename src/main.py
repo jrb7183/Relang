@@ -9,7 +9,7 @@ from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
 from selphone.selectPhonemes import selectConsonants
 from utils.tableFormatter import tableFormatter
-from utils.api.baseModels import ConsTable
+from utils.api.baseModels import ConsTable, Phonos
 from utils.ipaDecoder import ipaToBinary
 from utils.calcNumCons import numCons
 
@@ -22,7 +22,7 @@ app.add_middleware(
     CORSMiddleware, 
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET,POST,DELETE"],
+    allow_methods=["GET","POST","DELETE","OPTIONS"],
     allow_headers=["*"]
 )
 
@@ -44,8 +44,10 @@ def getCons():
     return temp_cons
 
 @app.post("/cons", response_model=ConsTable)
-def createConsList(cons_num: int):
-    cons_list = main(cons_num)
+def createConsList(phonos: Phonos):
+    phonos = phonos.model_dump()["phonos"]
+    cons_list = main(phonos)
+    
     global temp_cons
     temp_cons = ConsTable(constable=tableFormatter(cons_list))
     return temp_cons
