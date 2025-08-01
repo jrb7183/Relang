@@ -11,6 +11,7 @@ from selphone.selectPhonemes import selectConsonants
 from utils.tableFormatter import tableFormatter
 from utils.api.baseModels import ConsTable
 from utils.ipaDecoder import ipaToBinary
+from utils.calcNumCons import numCons
 
 app = FastAPI()
 origins = [
@@ -25,25 +26,16 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-def main(num, use_relang = False):
-    # temp = float(sys.argv[2])
+def main(phonologies: list[list[str]]):
+    for i in range(len(phonologies)): 
+        phonologies[i] = ipaToBinary(phonologies[i], True)
 
     consonants = loadPhonemes(True)
-    # print(consonants[(consonants.index % 8 == 0) & (consonants.index < 1300)])
-    probs = {}
-    if use_relang:
-        p = ["m", "n", "ŋ", "p", "t", "k", "s", "w", "l", "j"]
-        p = ipaToBinary(p, True)
-        q = ["b", "d", "g", "p", "t", "k", "s", "w", "l", "j"]
-        q = ipaToBinary(q, True)
-        probs = relangProbs([p, q])
-        return selectConsonants(consonants, probs, num)
+    probs = relangProbs(phonologies)
+    num = numCons(phonologies)
+    print(num)
 
-
-    with open("../data/baseProbs.json", "r", encoding="utf-8") as f:
-        probs = json.load(f)
-
-    return selectConsonants(consonants, probs["Consonants"], num)
+    return selectConsonants(consonants, probs, num)
 
 temp_cons = {"Consonants": [""]}
 
@@ -66,9 +58,19 @@ if __name__ == "__main__":
         uvicorn.run(app, host="0.0.0.0", port=8000)
     
     else:
-        num = int(sys.argv[2])
-        use_relang = sys.argv[3] != "base"
-        sel_phones = main(num, use_relang)
+        use_relang = sys.argv[2] != "base"
+
+        sel_phones = []
+        if use_relang:
+            p = ["m", "n", "ŋ", "p", "t", "k", "s", "w", "l", "j"]
+            q = ["b", "d", "g", "p", "t", "k", "s", "w", "l", "j"]
+            phonos = [p, q]
+
+            sel_phones = main(phonos)
+
+        else:
+            sel_phones = main([])
+        
         
         for i in range(len(sel_phones)):
             print(f"{i+1}.\t{sel_phones[i][0]}\n\t{sel_phones[i][1]}")
