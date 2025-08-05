@@ -4,7 +4,7 @@ from collections import Counter
 
 sys.path.append(".")
 from old_files.phoneProb import calcBaseProb
-from utils.phoneLinkedList import PhonemeList
+from old_files.phoneLinkedList import PhonemeList
 
 def adjustProb(phonemes: PhonemeList, sel_bin, laryngs, num_types):
     curr_phone = phonemes.getHead()
