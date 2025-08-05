@@ -66,6 +66,7 @@ if __name__ == "__main__":
         if use_relang:
             p = ["m", "n", "ŋ", "p", "t", "k", "p'", "t'", "k'", "s", "w", "l", "j"]
             q = ["b", "d", "g", "p", "t", "k", "s", "w", "l", "j"]
+
             phonos = [p, q]
 
             sel_phones = main(phonos)
