@@ -1,6 +1,9 @@
 import json
 import sys
 
+sys.path.append("../..")
+from utils.inputManagement.inputCleaner import cleanInput
+
 # Decodes consonants in IPA into binary
 def consDecoder(phoneme, corresp_dict):
     temp = 0
@@ -8,6 +11,9 @@ def consDecoder(phoneme, corresp_dict):
     coarticulate = ''
     err_helper = ''
     pre_err_helper = ''
+
+    if len(phoneme) > 1:
+        phoneme = cleanInput(phoneme)
 
     # Pre-nasalization
     if phoneme[0] == 'ⁿ':
@@ -76,6 +82,8 @@ def vowelDecoder(phoneme, corresp_dict):
     diphthong = ''
     err_helper = ''
 
+    if len(phoneme) > 1:
+        phoneme = cleanInput(phoneme)
 
     # Suprasegmentals
     if phoneme[-1] == '̥':
@@ -161,7 +169,7 @@ def ipaToBinary(phonology, cons):
 if __name__ == "__main__":
     val = sys.argv[1]
     if val == "cons":
-        phonology = ["p", "t", "b", "d", "ɸ’", "β", "s", "zʱ", "ɹ", "ⱱ̟̊ʰ", "tʲ", "pʲ", "ⁿp", "ⁿpʲ", "m", "ⁿⁿp", "kp", "kpʰ", "t̪p", "f", "cç", "ɦ", "w"]
+        phonology = ["p", "t", "b", "d", "ɸ'", "β", "s", "zʱ", "ɹ", "ⱱ̟̊ʰ", "tʲ", "pʲ", "ⁿp", "ⁿpʲ", "m", "ⁿⁿp", "kp", "k͡pʰ", "t̪͡p", "f", "cç", "ɦ", "w"]
         val = True
     else:
         phonology = ["a", "ʊ", "ɯ̞", "ø", "e", "ẽ", "e̥", "e̤", "e˞", "ẽ̥", "ai", "au", "ø̞y"]
