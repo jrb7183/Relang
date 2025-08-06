@@ -8,6 +8,7 @@ from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
 from selphone.phonemeConstraints import updateConstraints
 from selphone.rhoticLimiter import isRhotic, removeRhotics
+from selphone.constraintLimits import removeSelected
 
 
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
@@ -25,7 +26,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
     maxed_rhotics = False
 
     while len(sel_phonemes) < num_phonemes:
-        curr_permit = dict(permit_phones)
+        curr_permit = removeSelected(permit_phones, sel_phonemes, num_phonemes)
         phoneme_bin = 0
 
         # Debug loop
