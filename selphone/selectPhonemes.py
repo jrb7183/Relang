@@ -8,6 +8,7 @@ from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
 from selphone.phonemeConstraints import updateConstraints
 from selphone.rhoticLimiter import isRhotic, removeRhotics
+from selphone.constraintLimits import removeSelected
 
 
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
@@ -25,7 +26,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
     maxed_rhotics = False
 
     while len(sel_phonemes) < num_phonemes:
-        curr_permit = dict(permit_phones)
+        curr_permit = removeSelected(permit_phones, sel_phonemes, num_phonemes)
         phoneme_bin = 0
 
         # Debug loop
@@ -80,6 +81,10 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
             elif place[0] % 8 != sel_major_place:
                 place[1] += prob_adjust
+
+            # If loop count is too high, the top two features might be in a positive feedback loop
+            if loop_count > 100 and place in places[:2]:
+                place[1] = 0
 
         # Set place guarantees
         if guarantees["places"][sel_place] > 0:
@@ -136,6 +141,10 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             else:
                 manner[1] += prob_adjust
 
+            # If loop count is too high, the top two features might be in a positive feedback loop
+            if loop_count > 100 and manner in manners[:2]:
+                manner[1] = 0
+
         # Set manner guarantees
         if guarantees["manners"][sel_manner] > 0:
             guarantees["manners"][sel_manner] -= 1
@@ -191,6 +200,10 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
             else:
                 laryng[1] += prob_adjust
+
+            # If loop count is too high, the top two features might be in a positive feedback loop
+            if loop_count > 100 and laryng in laryngeals[:2]:
+                laryng[1] = 0
 
         # # Set laryngeal guarantees
         if guarantees["laryngeals"][sel_laryngeal] > 0:
