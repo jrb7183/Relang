@@ -19,8 +19,12 @@ def removeSelected(curr_permit: dict[int, dict[int, list[int]]], sel_phonemes: l
     reappear_num = total_phonemes * 3 // 5
 
     for i in range(len(sel_phonemes)):
-        if i < reappear_num:
+        if i < len(sel_phonemes) - reappear_num:
             phoneme_bin = sel_phonemes[i][1]
+
+            # Ignore consonants with suprasegmentals/nasalization/lateralization
+            if phoneme_bin & (31 << 11) != 0:
+                continue
 
             place = phoneme_bin & 31
             manner = phoneme_bin & (7 << 8)
