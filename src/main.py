@@ -32,7 +32,7 @@ def main(phonologies: list[list[str]]):
 
     consonants = loadPhonemes(True)
     probs = relangProbs(phonologies)
-    num = 30
+    num = numCons(phonologies)
     print(num)
 
     return selectConsonants(consonants, probs, num)
