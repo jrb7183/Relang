@@ -19,7 +19,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         "laryngeals": Counter(),
         "nasals": 0,
         "laterals": 0,
-        "suprasegmentals": Counter()
+        "suprasegmentals": Counter(),
+        "nasal manner": 0,
+        "supr place": 0
     }
     permit_phones = {26: {0: [0]}, 10: {0: [0]}}
     loop_count = 0
@@ -239,7 +241,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 nasality = probs["Nasality"]
                 sel_num = random.random()
 
-                if sel_num >= nasality[0][1] or guarantees["nasals"] + len(sel_phonemes) == num_phonemes:
+                if sel_num >= nasality[0][1] or (sel_manner == guarantees["nasal manner"] and guarantees["nasals"] + len(sel_phonemes) == num_phonemes):
                     phoneme_bin += nasality[1][0]
 
                     # Set nasality guarantees
@@ -247,6 +249,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                         guarantees["nasals"] -= 1
                     else:
                         guarantees["nasals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["nasals"] - 1)
+                        guarantees["nasal manner"] = sel_manner
 
 
             # Suprasegmentals
