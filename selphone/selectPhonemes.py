@@ -6,9 +6,9 @@ from collections import Counter
 sys.path.append("..")
 from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
-from selphone.phonemeConstraints import updateConstraints
+from selphone.constraints.phonemeConstraints import updateConstraints
 from selphone.rhoticLimiter import isRhotic, removeRhotics
-from selphone.constraintLimits import removeSelected
+from selphone.constraints.constraintLimits import removeSelected
 
 
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
@@ -31,24 +31,14 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         curr_permit = removeSelected(permit_phones, sel_phonemes, num_phonemes)
         phoneme_bin = 0
 
-        # Debug loop
-        # print(len(sel_phonemes))
-        # for key in guarantees:
-        #     if key not in ["nasals", "laterals"]:
-        #         print(key, guarantees[key].total(), guarantees[key])
-        #     else:
-        #         print(key, guarantees[key])
-
-        # print("")
-
         # Place of Articulation
         places = probs["Place"] + []
 
         places = list(filter(lambda place: place[0] in curr_permit, places))
-        # if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
-        #     temp = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
-        #     if len(temp) > 0:
-        #         places = temp
+        if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
+            temp = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
+            if len(temp) > 0:
+                places = temp
 
         places.sort(reverse=True, key=lambda place: place[1])
 
@@ -59,22 +49,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         phoneme_bin += sel_place
         curr_permit = curr_permit[sel_place]
 
-        # Select prob_adjust to lower max prob and increase others
-        # if len(places) > 1:
-        #     prob_adjust = max(places[-1][1], 0.01)
-        #     if places[0][1] - (prob_adjust * (len(places) - 1)) < 0:
-        #         prob_adjust = places[0][1] / (len(places) - 1)
-
-        #     # print(sel_place, prob_adjust)
-
-        #     for place in probs["Place"]:
-        #         if place in places:
-        #             if place[0] == sel_place:
-        #                 place[1] -= prob_adjust * (len(places) - 1)
-
-        #             else:
-        #                 place[1] += prob_adjust
-
+        # Lower selected prob and increase others outside of major place
         prob_adjust = 0.005
         sel_major_place = sel_place % 8
         for place in probs["Place"]:
@@ -118,23 +93,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         phoneme_bin += sel_manner
         curr_permit = curr_permit[sel_manner]
 
-        # Select prob_adjust to lower max prob and increase others
-        # if len(manners) > 1:
-        #     prob_adjust = max((guarantees["manners"][sel_manner] + 1) / len(sel_phonemes), 0.05)
-        #     if manners[0][1] - (prob_adjust * (len(manners) - 1)) < 0:
-        #         prob_adjust = manners[0][1] / (len(manners) - 1)
-
-        #     print(manners, guarantees["manners"][sel_manner])
-        #     print(sel_manner, prob_adjust, "\n")
-
-        #     for manner in probs["Manner"]:
-        #         if manner in manners:
-        #             if manner[0] == sel_manner:
-        #                 manner[1] -= prob_adjust * (len(manners) - 1)
-
-        #             else:
-        #                 manner[1] += prob_adjust
-
+        # Lower selected prob and increase others
         prob_adjust = 0.005
         for manner in probs["Manner"]:
             if manner[0] == sel_manner:
@@ -178,23 +137,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
         phoneme_bin += sel_laryngeal
 
-        # Select prob_adjust to lower max prob and increase others
-        # if len(laryngeals) > 1:
-        #     prob_adjust = max(laryngeals[-1][1], 0.01)
-        #     if laryngeals[0][1] - (prob_adjust * (len(laryngeals) - 1)) < 0:
-        #         prob_adjust = laryngeals[0][1] / (len(laryngeals) - 1)
-
-        #     # print(laryngeals)
-        #     # print(sel_laryngeal, prob_adjust, "\n")
-
-        #     for laryngeal in probs["Laryngeals"]:
-        #         if laryngeal in laryngeals:
-        #             if laryngeal[0] == sel_laryngeal:
-        #                 laryngeal[1] -= prob_adjust * (len(laryngeals) - 1)
-
-        #             else:
-        #                 laryngeal[1] += prob_adjust
-
+        # Lower selected prob and increase others
         prob_adjust = 0.05
         for laryng in probs["Laryngeals"]:
             if laryng[0] == sel_laryngeal:
