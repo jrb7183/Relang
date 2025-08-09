@@ -161,11 +161,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
 if __name__ == "__main__":
     num = int(sys.argv[1])
-    # temp = float(sys.argv[2])
 
     consonants = loadPhonemes(True)
-    # print(consonants[(consonants.index % 8 == 0) & (consonants.index < 1300)])
-    probs = relangProbs()
+    probs = relangProbs([])
     sel_phones = selectConsonants(consonants, probs["Consonants"], num)
 
     for i in range(len(sel_phones)):
