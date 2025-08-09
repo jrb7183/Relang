@@ -80,10 +80,10 @@ def mannerCriteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[in
                     case 18 | 19 | 25: # Ignore post-alveolars, palatals, and pharyngeals
                         return []
                     
-                    case 12 | 10 | 9:
+                    case 2 | 10:
                         return [512]
                     
-                    case 2 if manners[512] > 2:
+                    case 12 | 9 if manners[512] > 2:
                         return [512]
                     
                     case _ if manners[512] > 6:

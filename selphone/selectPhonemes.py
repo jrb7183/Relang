@@ -6,9 +6,11 @@ from collections import Counter
 sys.path.append("..")
 from probs.relangProbs import relangProbs
 from utils.phonemeLoader import loadPhonemes
-from selphone.phonemeConstraints import updateConstraints
+
+from selphone.constraints.phonemeConstraints import updateConstraints
 from selphone.rhoticLimiter import isRhotic, removeRhotics
-from selphone.constraintLimits import removeSelected
+from selphone.constraints.constraintLimits import removeSelected
+from selphone.featureSelector import selectFeature
 
 
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
@@ -31,191 +33,27 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         curr_permit = removeSelected(permit_phones, sel_phonemes, num_phonemes)
         phoneme_bin = 0
 
-        # Debug loop
-        # print(len(sel_phonemes))
-        # for key in guarantees:
-        #     if key not in ["nasals", "laterals"]:
-        #         print(key, guarantees[key].total(), guarantees[key])
-        #     else:
-        #         print(key, guarantees[key])
-
-        # print("")
-
         # Place of Articulation
-        places = probs["Place"] + []
-
-        places = list(filter(lambda place: place[0] in curr_permit, places))
-        # if guarantees["places"].total() + len(sel_phonemes) == num_phonemes:
-        #     temp = list(filter(lambda place: guarantees["places"][place[0]] > 0, places))
-        #     if len(temp) > 0:
-        #         places = temp
-
-        places.sort(reverse=True, key=lambda place: place[1])
-
-        sel_place = places[0][0]
-        if len(places) > 1:
-            sel_place = random.choice(places[:2])[0]
-
+        sel_place = selectFeature(0, probs, guarantees, len(sel_phonemes), num_phonemes, loop_count, curr_permit)
         phoneme_bin += sel_place
         curr_permit = curr_permit[sel_place]
 
-        # Select prob_adjust to lower max prob and increase others
-        # if len(places) > 1:
-        #     prob_adjust = max(places[-1][1], 0.01)
-        #     if places[0][1] - (prob_adjust * (len(places) - 1)) < 0:
-        #         prob_adjust = places[0][1] / (len(places) - 1)
-
-        #     # print(sel_place, prob_adjust)
-
-        #     for place in probs["Place"]:
-        #         if place in places:
-        #             if place[0] == sel_place:
-        #                 place[1] -= prob_adjust * (len(places) - 1)
-
-        #             else:
-        #                 place[1] += prob_adjust
-
-        prob_adjust = 0.005
-        sel_major_place = sel_place % 8
-        for place in probs["Place"]:
-            if place[0] == sel_place:
-                place[1] -= prob_adjust
-
-            elif place[0] % 8 != sel_major_place:
-                place[1] += prob_adjust
-
-            # If loop count is too high, the top two features might be in a positive feedback loop
-            if loop_count > 100 and place in places[:2]:
-                place[1] = 0
-
-        # Set place guarantees
-        if guarantees["places"][sel_place] > 0:
-            guarantees["places"][sel_place] -= 1
-
-        else:
-            if sel_place != 0: # Not glottal
-                guarantees["places"][sel_place] = min(2, num_phonemes - len(sel_phonemes) - guarantees["places"].total() - 1)
-
-
         # Manner of Articulation
-        manners = probs["Manner"] + []
-
-        manners = list(filter(lambda manner: manner[0] in curr_permit, manners))
-        if len(manners) == 0:
+        sel_manner = selectFeature(1, probs, guarantees, len(sel_phonemes), num_phonemes, loop_count, curr_permit)
+        if sel_manner == -1:
             continue
-
-        if guarantees["manners"].total() + len(sel_phonemes) == num_phonemes:
-            temp = list(filter(lambda manner: guarantees["manners"][manner[0]] > 0, manners))
-            if len(temp) > 0:
-                manners = temp
-
-        manners.sort(reverse=True, key= lambda manner : manner[1])
-
-        sel_manner = manners[0][0]
-        if len(manners) > 1:
-            sel_manner = random.choice(manners[:2])[0]
-
+        
         phoneme_bin += sel_manner
         curr_permit = curr_permit[sel_manner]
 
-        # Select prob_adjust to lower max prob and increase others
-        # if len(manners) > 1:
-        #     prob_adjust = max((guarantees["manners"][sel_manner] + 1) / len(sel_phonemes), 0.05)
-        #     if manners[0][1] - (prob_adjust * (len(manners) - 1)) < 0:
-        #         prob_adjust = manners[0][1] / (len(manners) - 1)
-
-        #     print(manners, guarantees["manners"][sel_manner])
-        #     print(sel_manner, prob_adjust, "\n")
-
-        #     for manner in probs["Manner"]:
-        #         if manner in manners:
-        #             if manner[0] == sel_manner:
-        #                 manner[1] -= prob_adjust * (len(manners) - 1)
-
-        #             else:
-        #                 manner[1] += prob_adjust
-
-        prob_adjust = 0.005
-        for manner in probs["Manner"]:
-            if manner[0] == sel_manner:
-                manner[1] -= prob_adjust
-
-            else:
-                manner[1] += prob_adjust
-
-            # If loop count is too high, the top two features might be in a positive feedback loop
-            if loop_count > 100 and manner in manners[:2]:
-                manner[1] = 0
-
-        # Set manner guarantees
-        if guarantees["manners"][sel_manner] > 0:
-            guarantees["manners"][sel_manner] -= 1
-
-        else:
-            guarantees["manners"][sel_manner] = min(2, num_phonemes - len(sel_phonemes) - guarantees["manners"].total() - 1)
-        
-
         # Laryngeal Features
-        manner = (phoneme_bin >> 8)
-        laryngeals = probs["Laryngeals"] + []
-
-        
-
-        laryngeals = list(filter(lambda laryngeal: laryngeal[0] in curr_permit, laryngeals))
-        if len(laryngeals) == 0:
+        sel_laryng = selectFeature(2, probs, guarantees, len(sel_phonemes), num_phonemes, loop_count, curr_permit)
+        phoneme_bin += sel_laryng
+        if sel_laryng == -1:
             continue
 
-        if guarantees["laryngeals"].total() > 0:
-            temp = list(filter(lambda laryngeal: guarantees["laryngeals"][laryngeal[0]] > 0, laryngeals))
-            if len(temp) != 0:
-                laryngeals = temp
-
-        laryngeals.sort(reverse=True, key= lambda laryngeal : laryngeal[1])
-
-        sel_laryngeal = laryngeals[0][0]
-        if len(laryngeals) > 1:
-            sel_laryngeal = random.choice(laryngeals[:2])[0]
-
-        phoneme_bin += sel_laryngeal
-
-        # Select prob_adjust to lower max prob and increase others
-        # if len(laryngeals) > 1:
-        #     prob_adjust = max(laryngeals[-1][1], 0.01)
-        #     if laryngeals[0][1] - (prob_adjust * (len(laryngeals) - 1)) < 0:
-        #         prob_adjust = laryngeals[0][1] / (len(laryngeals) - 1)
-
-        #     # print(laryngeals)
-        #     # print(sel_laryngeal, prob_adjust, "\n")
-
-        #     for laryngeal in probs["Laryngeals"]:
-        #         if laryngeal in laryngeals:
-        #             if laryngeal[0] == sel_laryngeal:
-        #                 laryngeal[1] -= prob_adjust * (len(laryngeals) - 1)
-
-        #             else:
-        #                 laryngeal[1] += prob_adjust
-
-        prob_adjust = 0.05
-        for laryng in probs["Laryngeals"]:
-            if laryng[0] == sel_laryngeal:
-                laryng[1] -= prob_adjust
-
-            else:
-                laryng[1] += prob_adjust
-
-            # If loop count is too high, the top two features might be in a positive feedback loop
-            if loop_count > 100 and laryng in laryngeals[:2]:
-                laryng[1] = 0
-
-        # # Set laryngeal guarantees
-        if guarantees["laryngeals"][sel_laryngeal] > 0:
-            guarantees["laryngeals"][sel_laryngeal] -= 1
-
-        else:
-            guarantees["laryngeals"][sel_laryngeal] = min(2, num_phonemes - len(sel_phonemes) - guarantees["laryngeals"].total() - 1)
-
-
         # Laterality
+        manner = (phoneme_bin >> 8)
         if manner > 3 and manner != 6: # No lateral plosives, nasals, affricates, trills, or sibilants
             if not (phoneme_bin % 4 == 0 or phoneme_bin % 32 == 25): # No Labial, Glottal or Pharyngeal laterals 
 
@@ -250,7 +88,6 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                     else:
                         guarantees["nasals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["nasals"] - 1)
                         guarantees["nasal manner"] = sel_manner
-
 
             # Suprasegmentals
             if (phoneme_bin >> 11) == 0: # Can't be nasal
@@ -324,11 +161,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
 if __name__ == "__main__":
     num = int(sys.argv[1])
-    # temp = float(sys.argv[2])
 
     consonants = loadPhonemes(True)
-    # print(consonants[(consonants.index % 8 == 0) & (consonants.index < 1300)])
-    probs = relangProbs()
+    probs = relangProbs([])
     sel_phones = selectConsonants(consonants, probs["Consonants"], num)
 
     for i in range(len(sel_phones)):
