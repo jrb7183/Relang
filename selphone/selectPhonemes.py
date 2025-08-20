@@ -220,6 +220,10 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         if maxed_rhotics and isRhotic(phoneme_bin):
             continue 
 
+        # Temp fix to filter out non-lateral alveolar fricatives
+        if sel_place == 10 and sel_manner == 1024 and phoneme_bin & (1 << 12) == 0:
+            continue
+
         if consonants.at[phoneme_bin, "Selected"]: # Require phonemic equivalent without supresegmentals before adding ones with them
             # Nasality
             if manner != 1: # Not a nasal

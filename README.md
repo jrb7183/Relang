@@ -1,6 +1,5 @@
 # Relang
-
-This application aims to help conlangers break free of their latent habits when approaching new languages. Relang analyzes aspects of conlangers' old protolangs to find commonalities amongst them and suggests an outline for protolang that breaks from those commonalities. **While Relang can generate many aspects of a protolang, it is truly meant for inspiration.** 
+This application aims to help conlangers break free of their latent habits when approaching new conlangs. Relang Generator analyzes a variety of features from conlangers' previous protolangs to find commonalities between them. Then, it suggests an outline for a protolang that breaks away from those commonalities. This outline will allow them to go out of their conlanging comfort zone and explore linguistic phenomena that they may have avoided in the past, subconsciously or otherwise. **While Relang can generate many aspects of a protolang, it is first and foremost meant for inspiration.**
 
 Relang is currently a WIP, so it only has limited functionality. Currently, I am focused on the phonology pipeline. At this point, every part of it is up and running (for consonants), so I am focused on refining Relang Probs and the Phoneme Selector (see the diagram below). The program can take in phonologies as inputs, but they are currently hard-coded. Before I continue refining Relang Probs and the Phoneme Selector, I am going to implement a way to input phonologies on the application's frontend.
 
