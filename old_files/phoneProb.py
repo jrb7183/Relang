@@ -3,7 +3,7 @@ import math
 import sys
 
 sys.path.append(".")
-import utils.phoneLinkedList as PLL
+import old_files.phoneLinkedList as PLL
 
 def consProb(base_prob, prob_list = PLL.PhonemeList):
     with open("data/consCorrespondences.json", "r", encoding="utf-8") as f:

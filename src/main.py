@@ -10,8 +10,8 @@ from utils.phonemeLoader import loadPhonemes
 from selphone.selectPhonemes import selectConsonants
 from utils.tableFormatter import tableFormatter
 from utils.api.baseModels import ConsTable, Phonos
-from utils.ipaDecoder import ipaToBinary
-from utils.calcNumCons import numCons
+from utils.inputManagement.ipaDecoder import ipaToBinary
+from utils.inputManagement.calcNumCons import numCons
 
 app = FastAPI()
 origins = [
@@ -64,8 +64,9 @@ if __name__ == "__main__":
 
         sel_phones = []
         if use_relang:
-            p = ["m", "n", "ŋ", "p", "t", "k", "s", "w", "l", "j"]
+            p = ["m", "n", "ŋ", "p", "t", "k", "p'", "t'", "k'", "s", "w", "l", "j"]
             q = ["b", "d", "g", "p", "t", "k", "s", "w", "l", "j"]
+
             phonos = [p, q]
 
             sel_phones = main(phonos)

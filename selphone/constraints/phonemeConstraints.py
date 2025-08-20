@@ -1,10 +1,10 @@
 import sys
 
 sys.path.append("..")
-from selphone.constraintCriteria.placeCriteria import placeCriteria
-from selphone.constraintCriteria.mannerCriteria import mannerCriteria
-from selphone.constraintCriteria.laryngealCriteria import laryngealCriteria
-from selphone.constraintExceptions import manageExceptions
+from selphone.constraints.constraintCriteria.placeCriteria import placeCriteria
+from selphone.constraints.constraintCriteria.mannerCriteria import mannerCriteria
+from selphone.constraints.constraintCriteria.laryngealCriteria import laryngealCriteria
+from selphone.constraints.constraintExceptions import manageExceptions
 
 """
 Updates the phonemes permitted to be selected by the Phoneme Selector.

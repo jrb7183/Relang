@@ -17,6 +17,7 @@ def mannerCriteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[in
     
     places = Counter(map(lambda sel_phoneme: sel_phoneme[1] % 32, sel_phonemes))
     manners = Counter(map(lambda sel_phoneme: (sel_phoneme[1] & (7 << 8)) % 2048, sel_phonemes))
+    pams = Counter(map(lambda sel_phoneme: (sel_phoneme[1] & ((7 << 8) + 31)) % 2048, sel_phonemes))
     
     match curr_num_manners:
         case 1: # Add nasals
@@ -63,7 +64,7 @@ def mannerCriteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[in
                         return new_manners
                 
         case 4: # Add affricates to velars
-            if curr_manner == 1024 and curr_place == 9:
+            if pams[512 + 10] > 0 and curr_place == 9:
                 return [512]
 
         case 5: # Add affricates to palatals and pharyngeals
@@ -79,10 +80,10 @@ def mannerCriteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[in
                     case 18 | 19 | 25: # Ignore post-alveolars, palatals, and pharyngeals
                         return []
                     
-                    case 12 | 10 | 9:
+                    case 2 | 10:
                         return [512]
                     
-                    case 2 if manners[512] > 2:
+                    case 12 | 9 if manners[512] > 2:
                         return [512]
                     
                     case _ if manners[512] > 6:

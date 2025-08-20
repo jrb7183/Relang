@@ -1,10 +1,10 @@
 import sys
 from collections import Counter
 
-sys.path.append("../..")
-from selphone.constraintCriteria.sonorantLaryngealCriteria import sonorantLaryngeals
-from selphone.constraintCriteria.plosiveLaryngealCriteria import plosiveLaryngeals
-from selphone.constraintCriteria.obstruentLaryngealCriteria import npObstruentLaryngeals
+sys.path.append("..")
+from selphone.constraints.constraintCriteria.sonorantLaryngealCriteria import sonorantLaryngeals
+from selphone.constraints.constraintCriteria.plosiveLaryngealCriteria import plosiveLaryngeals
+from selphone.constraints.constraintCriteria.obstruentLaryngealCriteria import npObstruentLaryngeals
 
 """
 This criteria function helps determine how to update the current constraints for the
