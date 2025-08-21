@@ -24,9 +24,9 @@ def selectFeature(feat: int, probs: dict[str, list[list]], guarantees: dict[str,
         sel_feature = random.choice(features[:2])[0]
 
     # Lower selected prob and increase others
-    prob_adjust = 0.005
-    if feat == 2:
-        prob_adjust = 0.05
+    prob_adjust = [0.001, 0.005, 0.05][feat]
+    # if feat == 2:
+    #     prob_adjust = 0.05
 
     for feature in probs[pfs[feat]]:
         if feature[0] == sel_feature:
