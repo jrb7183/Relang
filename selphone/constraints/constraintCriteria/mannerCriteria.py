@@ -23,8 +23,13 @@ def mannerCriteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[in
         case 1: # Add nasals
             if 0 in curr_manners:
                 match curr_place:
-                    case 25 | 0: # If glottal or pharyngeal, nasals are physically impossible. Skip to fricatives
-                        return [1024]
+                    case 0: # If glottal, nasals are physically impossible. Skip to fricatives
+                        if manners[1536] > 0:
+                            return [1024]
+                    
+                    case 25: # If pharyngeal, nasals are physically impossible. Skip to plosives
+                        if manners[0] > 10:
+                            return [0]
                 
                     case 12 | 10 | 9:
                         return [256]
@@ -37,7 +42,10 @@ def mannerCriteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[in
 
         case 2: # Add fricatives/sibilants, taps, trills, and approximants
             if 0 in curr_manners:
-                new_manners =  [1792]
+                new_manners = []
+                if curr_place not in [9, 17]:
+                    new_manners += [1792]
+
                 if curr_place & 2 == 2: # Ignore sibilants for non coronals
                     new_manners += [1536]
                 
@@ -51,28 +59,55 @@ def mannerCriteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[in
                     case 0 if curr_manner == 1024 and manners[512] > 5: # If glottal, skip to affricates 
                         return [512]
                     
-                    case 12 | 4 | 10 | 9 if places[curr_place] >= 2:
+                    case 10 if places[curr_place] >= 2 or places[26] >= 2:
+                        return new_manners
+                    
+                    case 12 | 4 | 9 if manners[1024] + manners[1536] + manners[768] + manners[1280] + manners[1792] > 2:
                         return new_manners
 
                     case 18 | 19 if manners[1024] + manners[1536] + manners[768] + manners[1280] + manners[1792] > 4:
                         return new_manners
 
                     case 25 if places[25] >= 3 and manners[768] + manners[1280] + manners[1792] > 6: 
+                        new_manners.pop(1)
                         return new_manners
                     
-                    case 26 | 2 | 17 if manners[1024] + manners[1536] + manners[768] + manners[1280] + manners[1792] > 7:
+                    case 26 | 2 if manners[1024] + manners[1536] + manners[768] + manners[1280] + manners[1792] > 7:
                         return new_manners
-                
-        case 4: # Add affricates to velars
-            if pams[512 + 10] > 0 and curr_place == 9:
-                return [512]
+                    
+                    case 17 if manners[1024] + manners[1536] + manners[768] + manners[1280] > 7:
+                        return new_manners
 
-        case 5: # Add affricates to palatals and pharyngeals
+                
+        case 3: # Add affricates and/or approximants to velars
+            if curr_place == 9:
+                if pams[512 + 10] > 0:
+                    if pams[1792] > 8:
+                        return [512, 1792]
+                    
+                    return [512]
+                
+                if pams[1792] > 8:
+                    return [1792]
+            
+        case 4: # Add affricates or approximants to velars
+            if curr_place == 9:
+                if 1792 in curr_manners:
+                    if pams[512 + 10] > 0:
+                        return [512]
+                    
+                elif pams[1792] > 8:
+                    return [1792]
+
+        case 5: # Add affricates to palatals and pharyngeals, and add approximants to uvulars
             if curr_place == 19 and curr_manner == 1024 and manners[512] > 2:
                 return [512]
             
             elif curr_place == 25 and manners[512] > 8:
                 return [512]
+            
+            elif curr_place == 17 and manners[1792] > 12:
+                return [1792]
             
         case 6: # Add affricates
             if curr_manner in [1024, 1536]:

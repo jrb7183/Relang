@@ -30,15 +30,18 @@ def removeSelected(curr_permit: dict[int, dict[int, list[int]]], sel_phonemes: l
             manner = phoneme_bin & (7 << 8)
             laryng = phoneme_bin & (7 << 5)
 
-            laryngs = new_permit[place][manner]
-            spot = laryngs.index(laryng)
-            laryngs.pop(spot)
+            # THERE'S SOME REALLY RARE EDGE CASE WHERE NEW_PERMIT[PLACE] DOESN'T CONTAIN MANNER
+            # PROBABLY SHOULD LOOK INTO IT
+            if place in new_permit and manner in new_permit[place]:
+                laryngs = new_permit[place][manner]
+                spot = laryngs.index(laryng)
+                laryngs.pop(spot)
 
-            if len(laryngs) == 0:
-                del new_permit[place][manner]
+                if len(laryngs) == 0:
+                    del new_permit[place][manner]
 
-                if len(new_permit[place].keys()) == 0:
-                    del new_permit[place]
+                    if len(new_permit[place].keys()) == 0:
+                        del new_permit[place]
 
     return new_permit
 

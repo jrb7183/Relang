@@ -30,10 +30,15 @@ def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]],
 
     if len(places) > 0:
         for new_place in places:
-            if new_place != 18:
+
+            if new_place not in [18, 25]:
                 curr_permit[new_place] = {0: [0]}
-            else:
+
+            elif new_place == 18: # Post-alveolars should start with affricates
                 curr_permit[new_place] = {512: [0]}
+
+            else: # Uvulars should start with fricatives
+                curr_permit[new_place] = {1024: [0]}
 
     # Update Manner Permissions
     manner = (phoneme_bin & (7 << 8)) % 2048

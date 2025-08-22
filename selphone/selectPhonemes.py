@@ -11,20 +11,12 @@ from selphone.constraints.phonemeConstraints import updateConstraints
 from selphone.rhoticLimiter import isRhotic, removeRhotics
 from selphone.constraints.constraintLimits import removeSelected
 from selphone.featureSelector import selectFeature
+from selphone.guarantees import manageGuarantees
 
 
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
     sel_phonemes = []
-    guarantees = {
-        "places": Counter(),
-        "manners": Counter(),
-        "laryngeals": Counter(),
-        "nasals": 0,
-        "laterals": 0,
-        "suprasegmentals": Counter(),
-        "nasal manner": 0,
-        "supr place": [0 for i in range(5)]
-    }
+    guarantees = []
     permit_phones = {26: {0: [0]}, 10: {0: [0]}}
     loop_count = 0
     maxed_rhotics = False
@@ -33,114 +25,104 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         curr_permit = removeSelected(permit_phones, sel_phonemes, num_phonemes)
         phoneme_bin = 0
 
-        # Place of Articulation
-        sel_place = selectFeature(0, probs, guarantees, len(sel_phonemes), num_phonemes, loop_count, curr_permit)
-        phoneme_bin += sel_place
-        curr_permit = curr_permit[sel_place]
+        if len(guarantees):
+            i = 0
+            
+            while phoneme_bin == 0 and i < len(guarantees):
+                place = guarantees[i] & 31
+                manner = guarantees[i] & (7 << 8)
+                laryng = guarantees[i] & (7 << 5)
 
-        # Manner of Articulation
-        sel_manner = selectFeature(1, probs, guarantees, len(sel_phonemes), num_phonemes, loop_count, curr_permit)
-        if sel_manner == -1:
-            continue
+                if place in permit_phones and manner in permit_phones[place] and laryng in permit_phones[place][manner]:
+                    phoneme_bin = guarantees[i]
+                    guarantees.pop(i)
+                    
+                    # Apply prob adjustments
+                    pfs = ["Place", "Manner", "Laryngeals"]
+                    for i in range(len(pfs)):
+                        sel_feature = [place, manner, laryng][i]
+                        prob_adjust = [0.001, 0.005, 0.05][i]
+
+                        for feature in probs[pfs[i]]:
+                            if feature[0] == sel_feature:
+                                feature[1] -= prob_adjust
+
+                            # Ignore places in same major place
+                            elif i or feature[0] % 8 != sel_feature % 8:
+                                feature[1] += prob_adjust
+
+                i += 1
+
+        if phoneme_bin == 0:
+
+            # Place of Articulation
+            sel_place = selectFeature(0, probs, loop_count, curr_permit)
+            phoneme_bin += sel_place
+            curr_permit = curr_permit[sel_place]
+
+            # Manner of Articulation
+            sel_manner = selectFeature(1, probs, loop_count, curr_permit)
+            if sel_manner == -1:
+                continue
+            
+            phoneme_bin += sel_manner
+            curr_permit = curr_permit[sel_manner]
+
+            # Laryngeal Features
+            sel_laryng = selectFeature(2, probs, loop_count, curr_permit)
+            phoneme_bin += sel_laryng
+            if sel_laryng == -1:
+                continue
+
+            # Laterality
+            manner = (phoneme_bin >> 8)
+            if manner > 3 and manner != 6: # No lateral plosives, nasals, affricates, trills, or sibilants
+                if not (phoneme_bin % 4 == 0 or phoneme_bin % 32 == 25): # No Labial, Glottal or Pharyngeal laterals 
+
+                    laterality = probs["Laterality"]
+                    sel_num = random.random()
+
+                    if sel_num >= laterality[0][1]:
+                        phoneme_bin += laterality[1][0]
         
-        phoneme_bin += sel_manner
-        curr_permit = curr_permit[sel_manner]
+            # Filter out rhotics if max has been met
+            if maxed_rhotics and isRhotic(phoneme_bin):
+                continue 
 
-        # Laryngeal Features
-        sel_laryng = selectFeature(2, probs, guarantees, len(sel_phonemes), num_phonemes, loop_count, curr_permit)
-        phoneme_bin += sel_laryng
-        if sel_laryng == -1:
-            continue
+            # Temp fix to filter out non-lateral alveolar fricatives
+            if sel_place == 10 and sel_manner == 1024 and phoneme_bin & (1 << 12) == 0:
+                continue
 
-        # Laterality
-        manner = (phoneme_bin >> 8)
-        if manner > 3 and manner != 6: # No lateral plosives, nasals, affricates, trills, or sibilants
-            if not (phoneme_bin % 4 == 0 or phoneme_bin % 32 == 25): # No Labial, Glottal or Pharyngeal laterals 
+            if consonants.at[phoneme_bin, "Selected"]: # Require phonemic equivalent without supresegmentals before adding ones with them
+                # Nasality
+                if manner != 1: # Not a nasal
+                    nasality = probs["Nasality"]
+                    sel_num = random.random()
 
-                laterality = probs["Laterality"]
-                sel_num = random.random()
+                    if sel_num >= nasality[0][1]:
+                        phoneme_bin += nasality[1][0]
 
-                if sel_num >= laterality[0][1] or guarantees["laterals"] + len(sel_phonemes) == num_phonemes:
-                    phoneme_bin += laterality[1][0]
+                # Suprasegmentals
+                if (phoneme_bin >> 11) == 0: # Can't be nasal
+                    suprasegmentals = probs["Suprasegmentals"] + []
 
-                    # Set laterality guarantees
-                    if guarantees["laterals"] > 0:
-                        guarantees["laterals"] -= 1
-                    else:
-                        guarantees["laterals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["laterals"] - 1)
-       
-        # Filter out rhotics if max has been met
-        if maxed_rhotics and isRhotic(phoneme_bin):
-            continue 
+                    # No velarized velars, palatalized palatals, or pharyngealized pharyngeals
+                    if sel_place in [19, 9, 25]:
+                        i = [19, 9, 25].index(sel_place) + 2
+                        suprasegmentals[0][1] += suprasegmentals[i][1]
+                        suprasegmentals.pop(i)
 
-        # Temp fix to filter out non-lateral alveolar fricatives
-        if sel_place == 10 and sel_manner == 1024 and phoneme_bin & (1 << 12) == 0:
-            continue
+                    sel_num = random.random()
+                    sel = 0
 
-        if consonants.at[phoneme_bin, "Selected"]: # Require phonemic equivalent without supresegmentals before adding ones with them
-            # Nasality
-            if manner != 1: # Not a nasal
-                nasality = probs["Nasality"]
-                sel_num = random.random()
+                    while sel >= 0:
+                        if sel_num < suprasegmentals[sel][1]:
+                            phoneme_bin += suprasegmentals[sel][0]
+                            sel = -1
 
-                if sel_num >= nasality[0][1] or (sel_manner == guarantees["nasal manner"] and guarantees["nasals"] + len(sel_phonemes) == num_phonemes):
-                    phoneme_bin += nasality[1][0]
-
-                    # Set nasality guarantees
-                    if guarantees["nasals"] > 0:
-                        guarantees["nasals"] -= 1
-                    else:
-                        guarantees["nasals"] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["nasals"] - 1)
-                        guarantees["nasal manner"] = sel_manner
-
-            # Suprasegmentals
-            if (phoneme_bin >> 11) == 0: # Can't be nasal
-                suprasegmentals = probs["Suprasegmentals"] + []
-
-                # No velarized velars, palatalized palatals, or pharyngealized pharyngeals
-                if sel_place in [19, 9, 25]:
-                    i = [19, 9, 25].index(sel_place) + 2
-                    suprasegmentals[0][1] += suprasegmentals[i][1]
-                    suprasegmentals.pop(i)
-
-                sel_num = random.random()
-                sel = 0
-
-                if guarantees["suprasegmentals"].total() > 0:
-                    for i in range(1, len(suprasegmentals)):
-
-                        supr = suprasegmentals[i][0]
-                        if sel_place == guarantees["supr place"][i] and guarantees["suprasegmentals"][supr] > 0:
-
-                            sel_num = 0
-                            while sel < len(suprasegmentals) and suprasegmentals[sel][0] != supr:
-                                sel_num += suprasegmentals[sel][1]
-                                sel += 1
-
-                            if sel == len(suprasegmentals):
-                                sel_num = 0
-
-                            sel = 0
-
-                while sel >= 0:
-                    if sel_num < suprasegmentals[sel][1]:
-                        phoneme_bin += suprasegmentals[sel][0]
-                        
-                        # Set suprasegmental guarantees
-                        if sel != 0:
-                            sel_supr = suprasegmentals[sel][0]
-                            if guarantees["suprasegmentals"][sel_supr] > 0:
-                                guarantees["suprasegmentals"][sel_supr] -= 1
-                                
-                            else:
-                                guarantees["suprasegmentals"][sel_supr] = min(num_phonemes // 10, num_phonemes - len(sel_phonemes) - guarantees["suprasegmentals"].total() - 1)
-                                guarantees["supr place"][sel] = sel_place
-
-                        sel = -1
-
-                    else:
-                        sel_num -= suprasegmentals[sel][1]
-                        sel += 1
+                        else:
+                            sel_num -= suprasegmentals[sel][1]
+                            sel += 1
 
         # Find Phoneme
         if not consonants.at[phoneme_bin, "Selected"]:
@@ -153,6 +135,8 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes, num_phonemes)
             if isRhotic(phoneme_bin):
                 [permit_phones, maxed_rhotics] = removeRhotics(sel_phonemes, num_phonemes, permit_phones)
+
+            guarantees += manageGuarantees(sel_phonemes)
 
         else:
             loop_count += 1
@@ -168,7 +152,7 @@ if __name__ == "__main__":
 
     consonants = loadPhonemes(True)
     probs = relangProbs([])
-    sel_phones = selectConsonants(consonants, probs["Consonants"], num)
+    sel_phones = selectConsonants(consonants, probs, num)
 
     for i in range(len(sel_phones)):
         print(f"{i+1}. {sel_phones[i][0]}")
