@@ -2,7 +2,7 @@ from collections import Counter
 
 """ Helper function for laryngealCriteria. Handles laryngeal criteria for plosives"""
 
-def plosiveLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_place: int, mals: Counter) -> list[int]:
+def plosiveLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_place: int, mals: Counter, num_phonemes: int) -> list[int]:
     match curr_num_laryngs:
         case 1: # Add aspirated and voiced features
             if curr_place in [12, 10, 9]:
@@ -81,7 +81,7 @@ def plosiveLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_place
 
                 # Bilabial, alveolar, and velar places will only have curr_laryngs = [0, 32, 64, 128, 192]
                 case 12 | 10:
-                    if mals[192] > 3:
+                    if mals[192] > 3 and num_phonemes > 84:
                         if mals[32] > 3:
                             return [96, 160, 224]
 
@@ -93,7 +93,7 @@ def plosiveLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_place
                 
                 case 26 | 19:
                     if 160 in curr_laryngs: # curr_laryngs = [0, 32, 64, 128, 160]
-                        if mals[192] > 3:
+                        if mals[192] > 3 and num_phonemes > 84:
                             return [192]
 
                     else:
@@ -118,7 +118,7 @@ def plosiveLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_place
                                 
         case 6: # Add clicks in permitted places (curr_laryngs = [0, 32, 64, 128, 160, 192])
             if curr_place in [12, 26, 10, 19]:
-                if mals[192] > 3:
+                if mals[192] > 3 and num_phonemes > 84:
                     return [96, 224]
 
         case 7: # Add breathy feature (curr_laryngs = [0, 32, 64, 96, 128, 192, 224])

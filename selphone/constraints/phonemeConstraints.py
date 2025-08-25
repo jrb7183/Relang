@@ -21,7 +21,7 @@ Nevertheless, Relang is aiming to make sketches for sound inventories of
 proto-languages, which should be more regular.
 """
 
-def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]], sel_phonemes: list[list], num_phonemes):
+def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]], sel_phonemes: list[list], num_phonemes: int) -> dict[int, dict[int, list]]:
     
     # Update Place Permissions
     place = phoneme_bin % 32
@@ -56,7 +56,7 @@ def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]],
         
     # Update Laryngeal Permissions
     curr_laryngeals = curr_manners[manner]
-    laryngeals = laryngealCriteria(curr_laryngeals, sel_phonemes)
+    laryngeals = laryngealCriteria(curr_laryngeals, sel_phonemes, num_phonemes)
     curr_laryngeals += laryngeals
     
     return curr_permit
