@@ -55,7 +55,7 @@ def removeSelected(curr_permit: dict[int, dict[int, list[int]]], sel_phonemes: l
                 del new_permit[place][256]
 
             if place == 18 and 512 in new_permit[place]:
-                del new_permit[place][0]
+                del new_permit[place][512]
 
             if len(new_permit[place].keys()) == 0:
                 del new_permit[place]

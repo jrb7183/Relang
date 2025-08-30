@@ -15,7 +15,7 @@ def selectFeature(feat: int, probs: dict[str, list[list]], loop_count: int, curr
 
     sel_feature = features[0][0]
     if len(features) > 1:
-        sel_feature = random.choice(features[:2])[0]
+        sel_feature = random.choice(features[:3])[0]
 
     # Lower selected prob and increase others
     prob_adjust = [0.001, 0.005, 0.05][feat]

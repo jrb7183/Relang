@@ -17,7 +17,7 @@ from selphone.guarantees import manageGuarantees
 def selectConsonants(consonants: DataFrame, probs, num_phonemes):
     sel_phonemes = []
     guarantees = []
-    permit_phones = {26: {0: [0]}, 10: {0: [0]}}
+    permit_phones = {10: {0: [0]}}
     loop_count = 0
     maxed_rhotics = False
     max_stops = num_phonemes * 3 // 4
@@ -135,7 +135,6 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 
             loop_count = 0
             if sel_manner & (3 << 9) == 0 or (sel_place == 18 and sel_manner == 512):
-                print(sel_phonemes[-1], max_stops)
                 max_stops -= 1
 
             # Update Permitted Phonemes
