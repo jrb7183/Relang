@@ -6,7 +6,7 @@ The function does permit already selected phonemes to reappear
 after a inventory size-based number of phonemes have been selected so 
 that suprasegmentals have the possibility of being added. 
 """
-def removeSelected(curr_permit: dict[int, dict[int, list[int]]], sel_phonemes: list[tuple], total_phonemes: int) -> dict[int, dict[int, list[int]]]:
+def removeSelected(curr_permit: dict[int, dict[int, list[int]]], sel_phonemes: list[tuple], total_phonemes: int, max_stops: int) -> dict[int, dict[int, list[int]]]:
     new_permit = {}
     
     # Deal with making a deep copy of original dict here
@@ -42,6 +42,23 @@ def removeSelected(curr_permit: dict[int, dict[int, list[int]]], sel_phonemes: l
 
                     if len(new_permit[place].keys()) == 0:
                         del new_permit[place]
+
+    # If max stops has been reached, no stops should be permitted
+    if max_stops < 1:
+        places = list(new_permit.keys())
+        for place in places:
+
+            if 0 in new_permit[place]:
+                del new_permit[place][0]
+            
+            if 256 in new_permit[place]:
+                del new_permit[place][256]
+
+            if place == 18 and 512 in new_permit[place]:
+                del new_permit[place][0]
+
+            if len(new_permit[place].keys()) == 0:
+                del new_permit[place]
 
     return new_permit
 

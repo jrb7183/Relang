@@ -20,11 +20,13 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
     permit_phones = {26: {0: [0]}, 10: {0: [0]}}
     loop_count = 0
     maxed_rhotics = False
+    max_stops = num_phonemes * 3 // 4
 
     while len(sel_phonemes) < num_phonemes:
-        curr_permit = removeSelected(permit_phones, sel_phonemes, num_phonemes)
+        curr_permit = removeSelected(permit_phones, sel_phonemes, num_phonemes, max_stops)
         phoneme_bin = 0
 
+        # Checks for guarantees, and overrides the normal phoneme selector process if any valid ones are found
         if len(guarantees):
             i = 0
             
@@ -32,24 +34,26 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 place = guarantees[i] & 31
                 manner = guarantees[i] & (7 << 8)
                 laryng = guarantees[i] & (7 << 5)
+                
+                # Stop guarantees are ignored if the max has been met (meaning it's reduced to 0)
+                if max_stops or manner & (3 << 9):
+                    if place in permit_phones and manner in permit_phones[place] and laryng in permit_phones[place][manner]:
+                        phoneme_bin = guarantees[i]
+                        guarantees.pop(i)
+                        
+                        # Apply prob adjustments
+                        pfs = ["Place", "Manner", "Laryngeals"]
+                        for i in range(len(pfs)):
+                            sel_feature = [place, manner, laryng][i]
+                            prob_adjust = [0.001, 0.005, 0.05][i]
 
-                if place in permit_phones and manner in permit_phones[place] and laryng in permit_phones[place][manner]:
-                    phoneme_bin = guarantees[i]
-                    guarantees.pop(i)
-                    
-                    # Apply prob adjustments
-                    pfs = ["Place", "Manner", "Laryngeals"]
-                    for i in range(len(pfs)):
-                        sel_feature = [place, manner, laryng][i]
-                        prob_adjust = [0.001, 0.005, 0.05][i]
+                            for feature in probs[pfs[i]]:
+                                if feature[0] == sel_feature:
+                                    feature[1] -= prob_adjust
 
-                        for feature in probs[pfs[i]]:
-                            if feature[0] == sel_feature:
-                                feature[1] -= prob_adjust
-
-                            # Ignore places in same major place
-                            elif i or feature[0] % 8 != sel_feature % 8:
-                                feature[1] += prob_adjust
+                                # Ignore places in same major place
+                                elif i or feature[0] % 8 != sel_feature % 8:
+                                    feature[1] += prob_adjust
 
                 i += 1
 
@@ -130,6 +134,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             consonants.at[phoneme_bin, "Selected"] = True
 
             loop_count = 0
+            if sel_manner & (3 << 9) == 0 or (sel_place == 18 and sel_manner == 512):
+                print(sel_phonemes[-1], max_stops)
+                max_stops -= 1
 
             # Update Permitted Phonemes
             permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes, num_phonemes)
