@@ -35,19 +35,21 @@ def manageExceptions(place: int, manner: int, curr_permit: dict[int, dict[int, l
     # Dental and alveolar consonants of the same manner should not co-occur (for the purposes of this model)
     if place % 16 == 10:
         opp_place = place ^ 16 # Dental and alveolar places are differentiated by their 5th bit
-        if manner in curr_permit[opp_place] and num_phonemes < max(37, num_phonemes * 2 // 3):
-            del curr_permit[opp_place][manner]
+        if opp_place in curr_permit:
 
-        # Allow initial possibility of sibilant fricatives, taps, trills, and approximants in alveolar place (all are currently added at once so check only needs to look for one)
-        if 1024 in manners:
-            for new_manner in manners:
-                if new_manner == 1024:
-                    curr_permit[opp_place][1536] = [0]
-                else:
-                    curr_permit[opp_place][new_manner] = [128]
+            if manner in curr_permit[opp_place] and num_phonemes < max(37, num_phonemes * 2 // 3):
+                del curr_permit[opp_place][manner]
 
-        # Allow initial possibility of non-sibilant fricatives in dental place
-        if 1536 in manners:
-            curr_permit[opp_place][1024] = [0]
+            # Allow initial possibility of sibilant fricatives, taps, trills, and approximants in alveolar place (all are currently added at once so check only needs to look for one)
+            if 1024 in manners:
+                for new_manner in manners:
+                    if new_manner == 1024:
+                        curr_permit[opp_place][1536] = [0]
+                    else:
+                        curr_permit[opp_place][new_manner] = [128]
+
+            # Allow initial possibility of non-sibilant fricatives in dental place
+            if 1536 in manners:
+                curr_permit[opp_place][1024] = [0]
 
     return curr_permit
