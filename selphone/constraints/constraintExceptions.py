@@ -4,7 +4,7 @@ Deals with common exceptions to the heirarchical feature constraints, mainly con
 of restrictions on the co-occurrence of consonants with the same manner in neighboring
 places.
 """
-def manageExceptions(place: int, manner: int, curr_permit: dict[int, dict[int, list[int]]], manners: list[int], num_phonemes: int) -> dict[int, dict[int, list[int]]]:
+def manage_exceptions(place: int, manner: int, curr_permit: dict[int, dict[int, list[int]]], manners: list[int], num_phonemes: int) -> dict[int, dict[int, list[int]]]:
     # Bilabial and labiodental consonants of the same manner should not co-occur (for the purposes of this model)
     if place % 8 == 4:
         opp_place = place ^ 8 # Bilabial and labiodental places are differentiated by their 4th bit

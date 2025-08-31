@@ -1,6 +1,6 @@
 # Takes in the base probability and average found for a given category
 # of a feature and outputs a modded prob. 
-def probModder(base_probs: list[list[int, float]], avgs: dict[int, float], len_phono: int) -> list[list[int, float]]:
+def prob_modder(base_probs: list[list[int, float]], avgs: dict[int, float], len_phono: int) -> list[list[int, float]]:
     unmodded = []
     total_diff = 0
 

@@ -5,13 +5,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 sys.path.append("..")
-from probs.relangProbs import relangProbs
-from utils.phonemeLoader import loadPhonemes
-from selphone.selectPhonemes import selectConsonants
-from utils.tableFormatter import tableFormatter
+from probs.relangProbs import relang_probs
+from selphone.selectPhonemes import select_consonants
+
+from utils.tableFormatter import table_formatter
+from utils.phonemeLoader import load_phonemes
 from utils.api.baseModels import ConsTable, Phonos
-from utils.inputManagement.ipaDecoder import ipaToBinary
-from utils.inputManagement.calcNumCons import numCons
+from utils.inputManagement.ipaDecoder import ipa_to_bin
+from utils.inputManagement.calcNumCons import num_cons
 
 app = FastAPI()
 origins = [
@@ -26,30 +27,30 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-def main(phonologies: list[list[str]]):
+def main(phonologies: list[list[str]]) -> list[tuple]:
     for i in range(len(phonologies)): 
-        phonologies[i] = ipaToBinary(phonologies[i], True)
+        phonologies[i] = ipa_to_bin(phonologies[i], True)
 
-    consonants = loadPhonemes(True)
-    probs = relangProbs(phonologies)
-    num = numCons(phonologies)
+    consonants = load_phonemes(True)
+    probs = relang_probs(phonologies)
+    num = num_cons(phonologies)
     print(num)
 
-    return selectConsonants(consonants, probs, num)
+    return select_consonants(consonants, probs, num)
 
 temp_cons = {"Consonants": [""]}
 
 @app.get("/cons", response_model=ConsTable)
-def getCons():
+def getCons() -> dict[str, list[str]]:
     return temp_cons
 
 @app.post("/cons", response_model=ConsTable)
-def createConsList(phonos: Phonos):
+def createConsList(phonos: Phonos) -> dict[str, list[str]]:
     phonos = phonos.model_dump()["phonos"]
     cons_list = main(phonos)
     
     global temp_cons
-    temp_cons = ConsTable(constable=tableFormatter(cons_list))
+    temp_cons = ConsTable(constable=table_formatter(cons_list))
     return temp_cons
     
 

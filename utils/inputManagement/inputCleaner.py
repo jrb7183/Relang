@@ -4,7 +4,7 @@ easier symbols to type than IPA ones (i.e. ' instead of ’ for ejectives), but
 Relang also just doesn't use the combining bar (͡ ) for affricates, so that needs
 to be removed as well.  
 """
-def cleanInput(phoneme: str) -> str:
+def clean_input(phoneme: str) -> str:
 
     # It's impossible to see, but the second element in the list below is an umlaut (̈ )
     for diacritic in ["͡", "̈", "̯", "̩"]:

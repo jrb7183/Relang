@@ -1,20 +1,19 @@
 import random
 import sys
 from pandas import DataFrame
-from collections import Counter
 
 sys.path.append("..")
-from probs.relangProbs import relangProbs
-from utils.phonemeLoader import loadPhonemes
+from probs.relangProbs import relang_probs
+from utils.phonemeLoader import load_phonemes
 
-from selphone.constraints.phonemeConstraints import updateConstraints
-from selphone.rhoticLimiter import isRhotic, removeRhotics
-from selphone.constraints.constraintLimits import removeSelected
-from selphone.featureSelector import selectFeature
-from selphone.guarantees import manageGuarantees
+from selphone.constraints.phonemeConstraints import update_constraints
+from selphone.rhoticLimiter import is_rhotic, remove_rhotics
+from selphone.constraints.constraintLimits import remove_selected
+from selphone.featureSelector import select_feature
+from selphone.guarantees import manage_guarantees
 
 
-def selectConsonants(consonants: DataFrame, probs, num_phonemes):
+def select_consonants(consonants: DataFrame, probs, num_phonemes):
     sel_phonemes = []
     guarantees = []
     permit_phones = {10: {0: [0]}}
@@ -23,7 +22,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
     max_stops = num_phonemes * 3 // 4
 
     while len(sel_phonemes) < num_phonemes:
-        curr_permit = removeSelected(permit_phones, sel_phonemes, num_phonemes, max_stops)
+        curr_permit = remove_selected(permit_phones, sel_phonemes, num_phonemes, max_stops)
         phoneme_bin = 0
 
         # Checks for guarantees, and overrides the normal phoneme selector process if any valid ones are found
@@ -60,12 +59,12 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
         if phoneme_bin == 0:
 
             # Place of Articulation
-            sel_place = selectFeature(0, probs, loop_count, curr_permit)
+            sel_place = select_feature(0, probs, loop_count, curr_permit)
             phoneme_bin += sel_place
             curr_permit = curr_permit[sel_place]
 
             # Manner of Articulation
-            sel_manner = selectFeature(1, probs, loop_count, curr_permit)
+            sel_manner = select_feature(1, probs, loop_count, curr_permit)
             if sel_manner == -1:
                 continue
             
@@ -73,7 +72,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
             curr_permit = curr_permit[sel_manner]
 
             # Laryngeal Features
-            sel_laryng = selectFeature(2, probs, loop_count, curr_permit)
+            sel_laryng = select_feature(2, probs, loop_count, curr_permit)
             phoneme_bin += sel_laryng
             if sel_laryng == -1:
                 continue
@@ -90,7 +89,7 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                         phoneme_bin += laterality[1][0]
         
             # Filter out rhotics if max has been met
-            if maxed_rhotics and isRhotic(phoneme_bin):
+            if maxed_rhotics and is_rhotic(phoneme_bin):
                 continue 
 
             # Temp fix to filter out non-lateral alveolar fricatives
@@ -138,11 +137,11 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
                 max_stops -= 1
 
             # Update Permitted Phonemes
-            permit_phones = updateConstraints(phoneme_bin, permit_phones, sel_phonemes, num_phonemes)
-            if isRhotic(phoneme_bin):
-                [permit_phones, maxed_rhotics] = removeRhotics(sel_phonemes, num_phonemes, permit_phones)
+            permit_phones = update_constraints(phoneme_bin, permit_phones, sel_phonemes, num_phonemes)
+            if is_rhotic(phoneme_bin):
+                [permit_phones, maxed_rhotics] = remove_rhotics(sel_phonemes, num_phonemes, permit_phones)
 
-            guarantees += manageGuarantees(sel_phonemes)
+            guarantees += manage_guarantees(sel_phonemes)
 
         else:
             loop_count += 1
@@ -156,9 +155,9 @@ def selectConsonants(consonants: DataFrame, probs, num_phonemes):
 if __name__ == "__main__":
     num = int(sys.argv[1])
 
-    consonants = loadPhonemes(True)
-    probs = relangProbs([])
-    sel_phones = selectConsonants(consonants, probs, num)
+    consonants = load_phonemes(True)
+    probs = relang_probs([])
+    sel_phones = select_consonants(consonants, probs, num)
 
     for i in range(len(sel_phones)):
         print(f"{i+1}. {sel_phones[i][0]}")

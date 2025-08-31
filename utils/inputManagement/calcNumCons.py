@@ -8,7 +8,7 @@ Nonexistant (0), Unnaturalistically Small (1-7), Small (8-19), Medium (20-45),
 Large (46-59), Extra Large (60-84), Click Large (85-180), and Unnaturalistically Large (181+).
 """
 
-def numCons(phonologies: list[list]) -> int:
+def num_cons(phonologies: list[list]) -> int:
     # If no phonology entered, randomly pick naturalistic size
     if len(phonologies) == 0:
         return randrange(8, 60)
@@ -80,4 +80,4 @@ if __name__ == "__main__":
     phonologies = [ ["t" for _ in range(randrange(lower, upper))] for _ in range(30)]
 
     for _ in range(30):
-        print(numCons(phonologies), "\n")
+        print(num_cons(phonologies), "\n")

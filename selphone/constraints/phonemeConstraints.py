@@ -1,10 +1,10 @@
 import sys
 
 sys.path.append("..")
-from selphone.constraints.constraintCriteria.placeCriteria import placeCriteria
-from selphone.constraints.constraintCriteria.mannerCriteria import mannerCriteria
-from selphone.constraints.constraintCriteria.laryngealCriteria import laryngealCriteria
-from selphone.constraints.constraintExceptions import manageExceptions
+from selphone.constraints.constraintCriteria.placeCriteria import place_criteria
+from selphone.constraints.constraintCriteria.mannerCriteria import manner_criteria
+from selphone.constraints.constraintCriteria.laryngealCriteria.laryngealCriteria import laryngeal_criteria
+from selphone.constraints.constraintExceptions import manage_exceptions
 
 """
 Updates the phonemes permitted to be selected by the Phoneme Selector.
@@ -21,12 +21,12 @@ Nevertheless, Relang is aiming to make sketches for sound inventories of
 proto-languages, which should be more regular.
 """
 
-def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]], sel_phonemes: list[list], num_phonemes: int) -> dict[int, dict[int, list]]:
+def update_constraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]], sel_phonemes: list[list], num_phonemes: int) -> dict[int, dict[int, list]]:
     
     # Update Place Permissions
     place = phoneme_bin % 32
     curr_num_places = len(list(curr_permit.keys()))
-    places = placeCriteria(curr_num_places, sel_phonemes)
+    places = place_criteria(curr_num_places, sel_phonemes)
 
     if len(places) > 0:
         for new_place in places:
@@ -43,7 +43,7 @@ def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]],
     # Update Manner Permissions
     manner = (phoneme_bin & (7 << 8)) % 2048
     curr_manners = curr_permit[place]
-    manners = mannerCriteria(curr_manners, sel_phonemes)
+    manners = manner_criteria(curr_manners, sel_phonemes)
 
     if len(manners) > 0:
         for new_manner in manners:
@@ -52,11 +52,11 @@ def updateConstraints(phoneme_bin: int, curr_permit: dict[int, dict[int, list]],
             else:
                 curr_manners[new_manner] = [128]
 
-    curr_permit = manageExceptions(place, manner, curr_permit, manners, num_phonemes)
+    curr_permit = manage_exceptions(place, manner, curr_permit, manners, num_phonemes)
         
     # Update Laryngeal Permissions
     curr_laryngeals = curr_manners[manner]
-    laryngeals = laryngealCriteria(curr_laryngeals, sel_phonemes, num_phonemes)
+    laryngeals = laryngeal_criteria(curr_laryngeals, sel_phonemes, num_phonemes)
     curr_laryngeals += laryngeals
     
     return curr_permit

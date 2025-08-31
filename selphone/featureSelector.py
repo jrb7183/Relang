@@ -1,8 +1,7 @@
 import random
-from collections import Counter
 
 # Selects the place, manner, or laryngeal features for a phoneme.
-def selectFeature(feat: int, probs: dict[str, list[list]], loop_count: int, curr_permit) -> int:
+def select_feature(feat: int, probs: dict[str, list[list]], loop_count: int, curr_permit) -> int:
     pfs = ["Place", "Manner", "Laryngeals"]
 
     features = probs[pfs[feat]] + []
