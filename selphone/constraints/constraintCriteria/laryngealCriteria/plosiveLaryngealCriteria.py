@@ -1,8 +1,8 @@
 from collections import Counter
 
-""" Helper function for laryngealCriteria. Handles laryngeal criteria for plosives"""
+""" Helper function for laryngeal criteria. Handles laryngeal criteria for plosives"""
 
-def plosiveLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_place: int, mals: Counter, num_phonemes: int) -> list[int]:
+def plosive_laryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_place: int, mals: Counter, num_phonemes: int) -> list[int]:
     match curr_num_laryngs:
         case 1: # Add aspirated and voiced features
             if curr_place in [12, 10, 9]:

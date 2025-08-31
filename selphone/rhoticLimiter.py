@@ -1,6 +1,6 @@
 
 # Determines if current phoneme is a rhotic
-def isRhotic(phoneme_bin: int) -> bool:
+def is_rhotic(phoneme_bin: int) -> bool:
     major_place = phoneme_bin & 7
     manner = phoneme_bin & (7 << 8)
 
@@ -17,12 +17,12 @@ def isRhotic(phoneme_bin: int) -> bool:
     return False
 
 # Determines if a phonology has its max number of rhotics, and, if so, remmoves possibility of manners that are specifically rhotic (taps and trills)
-def removeRhotics(sel_phonemes: list[list[str, int]], num_phonemes: int, curr_permit: dict[int, dict[int, list[int]]]) -> list[dict[int, dict[int, list[int]]], bool]:
+def remove_rhotics(sel_phonemes: list[list[str, int]], num_phonemes: int, curr_permit: dict[int, dict[int, list[int]]]) -> list[dict[int, dict[int, list[int]]], bool]:
     curr_rhotics = set()
     removed_rhotics = False
 
     for phoneme in sel_phonemes:
-        if isRhotic(phoneme[1]):
+        if is_rhotic(phoneme[1]):
             curr_rhotics.add(phoneme[1] & ((7 << 8) + 31)) # Ignore laryngeals + suprasegmentals
 
     if len(curr_rhotics) >= (num_phonemes // 50 + 1):

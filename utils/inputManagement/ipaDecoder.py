@@ -2,18 +2,15 @@ import json
 import sys
 
 sys.path.append("../..")
-from utils.inputManagement.inputCleaner import cleanInput
+from utils.inputManagement.inputCleaner import clean_input
 
 # Decodes consonants in IPA into binary
-def consDecoder(phoneme, corresp_dict):
+def cons_decoder(phoneme: str, corresp_dict: dict[str, str]) -> int:
     temp = 0
     supr = ''
     coarticulate = ''
     err_helper = ''
     pre_err_helper = ''
-
-    if len(phoneme) > 1:
-        phoneme = cleanInput(phoneme)
 
     # Pre-nasalization
     if phoneme[0] == 'ⁿ':
@@ -77,13 +74,10 @@ def consDecoder(phoneme, corresp_dict):
 
 
 # Decodes vowels in IPA into binary
-def vowelDecoder(phoneme, corresp_dict):
+def vowel_decoder(phoneme: str, corresp_dict: dict[str, str]) -> int:
     temp = 0
     diphthong = ''
     err_helper = ''
-
-    if len(phoneme) > 1:
-        phoneme = cleanInput(phoneme)
 
     # Suprasegmentals
     if phoneme[-1] == '̥':
@@ -135,7 +129,7 @@ def vowelDecoder(phoneme, corresp_dict):
     with the correspondences.json file contains a list of IPA to hex correspondences. Any
     unrepresented suprasegmentals are made after binary conversion.
 """
-def ipaToBinary(phonology, cons):
+def ipa_to_bin(phonology: list[str], cons: bool) -> list[int]:
     corresp_dict = {}
     if cons:
         with open("../data/consCorrespondences.json", "r", encoding="utf-8") as f:
@@ -149,15 +143,17 @@ def ipaToBinary(phonology, cons):
     temp = 0
     bin_phones = []
     for phoneme in phonology:
-        
+
+        if len(phoneme) > 1:
+            phoneme = clean_input(phoneme)
 
         # Consonant Case
         if cons:
-            temp = consDecoder(phoneme, corresp_dict)
+            temp = cons_decoder(phoneme, corresp_dict)
 
         # Vowel Case
         else:
-            temp = vowelDecoder(phoneme, corresp_dict)
+            temp = vowel_decoder(phoneme, corresp_dict)
 
         if temp != -1:
             bin_phones += [temp]
@@ -175,4 +171,4 @@ if __name__ == "__main__":
         phonology = ["a", "ʊ", "ɯ̞", "ø", "e", "ẽ", "e̥", "e̤", "e˞", "ẽ̥", "ai", "au", "ø̞y"]
         val = False
 
-    ipaToBinary(phonology, val)
+    ipa_to_bin(phonology, val)

@@ -1,8 +1,8 @@
 from collections import Counter
 
-""" Helper function for laryngealCriteria. Handles laryngeal criteria for sonorants"""
+""" Helper function for laryngeal criteria. Handles laryngeal criteria for sonorants"""
 
-def sonorantLaryngeals(curr_num_laryngs: int, curr_manner: int, curr_place: int, mals: Counter) -> list[int]:
+def sonorant_laryngeals(curr_num_laryngs: int, curr_manner: int, curr_place: int, mals: Counter) -> list[int]:
     match curr_num_laryngs:
         case 1: # Add voiceless sonorants
             if curr_manner == 256:

@@ -3,7 +3,7 @@ import sys
 
 sys.path.append("..")
 from probs.calcAverage import averager, normalizer
-from probs.modProbs import probModder
+from probs.modProbs import prob_modder
 
 """
 This part of the Relang pipeline takes in all of the user-inputted phonologies and finds the
@@ -12,7 +12,7 @@ manners, laryngeal features). These averages ideally shine light into the user's
 constructing proto-phonologies. Subsequently, the function uses these averages to modify the
 base probs to steer away from those tendencies. 
 """
-def relangProbs(phonologies: list[list[int]]) -> dict[str, list[list[int, float]]]:
+def relang_probs(phonologies: list[list[int]]) -> dict[str, list[list[int, float]]]:
 
     # Calculate average percentages that places, manners, laryngeal features, etc. occur.
     # [place, laryngeals, manners, nasality, laterality, suprasegmentals]
@@ -31,6 +31,6 @@ def relangProbs(phonologies: list[list[int]]) -> dict[str, list[list[int, float]
     features = ["Place", "Laryngeals", "Manner", "Nasality", "Laterality", "Suprasegmentals"]
     for i in range(len(features)):
         averages[i] = normalizer(averages[i], probs[features[i]])
-        probs[features[i]] = probModder(probs[features[i]], averages[i], len(phonologies))
+        probs[features[i]] = prob_modder(probs[features[i]], averages[i], len(phonologies))
 
     return probs

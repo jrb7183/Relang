@@ -1,8 +1,8 @@
 from collections import Counter
 
-""" Helper function for laryngealCriteria. Handles laryngeal criteria for non-plosive obstruents"""
+""" Helper function for laryngeal criteria. Handles laryngeal criteria for non-plosive obstruents"""
 
-def npObstruentLaryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_manner: int, curr_place: int, mals: Counter, pals: Counter) -> list[int]:
+def np_obstruent_laryngeals(curr_laryngs: list[int], curr_num_laryngs: int, curr_manner: int, curr_place: int, mals: Counter, pals: Counter) -> list[int]:
     match curr_num_laryngs:
         case 1: # Add aspirated and voiced features
             if curr_place == 25 and curr_manner == 512:

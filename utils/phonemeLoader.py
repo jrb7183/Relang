@@ -2,7 +2,7 @@ import json
 import sys
 from pandas import DataFrame
 
-def loadCons():
+def load_cons() -> DataFrame:
     with open("../data/consCorrespondences.json", "r", encoding="utf-8") as f:
         temp_dict = json.load(f)
 
@@ -38,7 +38,7 @@ def loadCons():
     return cons.sort_index()
 
 
-def loadVowels():
+def load_vowels() -> DataFrame:
     with open("../data/vowelCorrespondences.json", "r", encoding="utf-8") as f:
         temp_dict = json.load(f)
 
@@ -80,18 +80,18 @@ def loadVowels():
 
 
 
-def loadPhonemes(cons: bool):
+def load_phonemes(cons: bool) -> DataFrame:
     if cons:
         # Load Consonants and Determine their Probabilities
-        return loadCons()
+        return load_cons()
     else:
         # Load Vowels and Determine their Probabilities
-        return loadVowels()
+        return load_vowels()
 
 
 if __name__ == "__main__":
     val = sys.argv[1]
     # limit = int(sys.argv[2])
 
-    phonemes = loadPhonemes(val == "cons")
+    phonemes = load_phonemes(val == "cons")
     print(phonemes)

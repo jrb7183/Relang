@@ -8,7 +8,7 @@ corresponding places.
 """
 
 # Determines which places to add to the constraints
-def placeCriteria(curr_num_places: int, sel_phonemes: list[list]) -> list[int]:
+def place_criteria(curr_num_places: int, sel_phonemes: list[list]) -> list[int]:
     places = Counter(map(lambda sel_phoneme: sel_phoneme[1] % 32, sel_phonemes))
     manners = Counter(map(lambda sel_phoneme: (sel_phoneme[1] & (7 << 8)) % 2048, sel_phonemes))
 

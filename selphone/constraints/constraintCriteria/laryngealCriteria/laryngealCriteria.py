@@ -2,9 +2,9 @@ import sys
 from collections import Counter
 
 sys.path.append("..")
-from selphone.constraints.constraintCriteria.sonorantLaryngealCriteria import sonorantLaryngeals
-from selphone.constraints.constraintCriteria.plosiveLaryngealCriteria import plosiveLaryngeals
-from selphone.constraints.constraintCriteria.obstruentLaryngealCriteria import npObstruentLaryngeals
+from selphone.constraints.constraintCriteria.laryngealCriteria.sonorantLaryngealCriteria import sonorant_laryngeals
+from selphone.constraints.constraintCriteria.laryngealCriteria.plosiveLaryngealCriteria import plosive_laryngeals
+from selphone.constraints.constraintCriteria.laryngealCriteria.obstruentLaryngealCriteria import np_obstruent_laryngeals
 
 """
 This criteria function helps determine how to update the current constraints for the
@@ -14,7 +14,7 @@ If any are, then they return the corresponding laryngeal features.
 """
 
 # Determines which laryngeals to add to the constraints
-def laryngealCriteria(curr_laryngs: list[int], sel_phonemes: list[list], num_phonemes: int) -> list[int]:
+def laryngeal_criteria(curr_laryngs: list[int], sel_phonemes: list[list], num_phonemes: int) -> list[int]:
 
     # Find information relevant to laryngeal feature criteria
     curr_num_laryngs = len(curr_laryngs)
@@ -29,9 +29,9 @@ def laryngealCriteria(curr_laryngs: list[int], sel_phonemes: list[list], num_pho
 
     # Determine new laryngeal constraints based on information found
     if is_sonorant:
-        return sonorantLaryngeals(curr_num_laryngs, curr_manner, curr_place, mals)             
+        return sonorant_laryngeals(curr_num_laryngs, curr_manner, curr_place, mals)             
     
     if curr_manner == 0:
-        return plosiveLaryngeals(curr_laryngs, curr_num_laryngs, curr_place, mals, num_phonemes)
+        return plosive_laryngeals(curr_laryngs, curr_num_laryngs, curr_place, mals, num_phonemes)
     
-    return npObstruentLaryngeals(curr_laryngs, curr_num_laryngs, curr_manner, curr_place, mals, pals)
+    return np_obstruent_laryngeals(curr_laryngs, curr_num_laryngs, curr_manner, curr_place, mals, pals)

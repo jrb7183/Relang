@@ -8,7 +8,7 @@ then they return the corresponding manners.
 """
 
 # Determines which manners to add to the constraints
-def mannerCriteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[int]:
+def manner_criteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[int]:
     curr_num_manners = len(curr_manners)
     phoneme_bin = sel_phonemes[-1][1]
 

@@ -2,7 +2,7 @@ import json
 import sys
 
 # Add phoneme correspondences to the json
-def jsonify(path):
+def jsonify(path: str) -> None:
     corresp_dict = {}
     if path:
         with open(path, 'r') as f:
