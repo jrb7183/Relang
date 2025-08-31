@@ -1,6 +1,6 @@
 """ Reformats list of phonemes to be interpretable by the frontend """
 
-def table_formatter(cons_list) -> dict[str, list]:
+def table_formatter(cons_list: list[tuple]) -> dict[str, list]:
     cons_dict = {}
     label_row = ["" for _ in range(11)]
     order_list = [[] for _ in range(11)]

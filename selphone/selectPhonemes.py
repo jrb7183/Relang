@@ -13,7 +13,7 @@ from selphone.featureSelector import select_feature
 from selphone.guarantees import manage_guarantees
 
 
-def select_consonants(consonants: DataFrame, probs, num_phonemes):
+def select_consonants(consonants: DataFrame, probs: dict, num_phonemes: int) -> list[tuple]:
     sel_phonemes = []
     guarantees = []
     permit_phones = {10: {0: [0]}}

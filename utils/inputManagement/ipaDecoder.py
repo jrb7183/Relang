@@ -5,7 +5,7 @@ sys.path.append("../..")
 from utils.inputManagement.inputCleaner import clean_input
 
 # Decodes consonants in IPA into binary
-def cons_decoder(phoneme, corresp_dict) -> int:
+def cons_decoder(phoneme: str, corresp_dict: dict[str, str]) -> int:
     temp = 0
     supr = ''
     coarticulate = ''
@@ -74,7 +74,7 @@ def cons_decoder(phoneme, corresp_dict) -> int:
 
 
 # Decodes vowels in IPA into binary
-def vowel_decoder(phoneme, corresp_dict) -> int:
+def vowel_decoder(phoneme: str, corresp_dict: dict[str, str]) -> int:
     temp = 0
     diphthong = ''
     err_helper = ''
@@ -129,7 +129,7 @@ def vowel_decoder(phoneme, corresp_dict) -> int:
     with the correspondences.json file contains a list of IPA to hex correspondences. Any
     unrepresented suprasegmentals are made after binary conversion.
 """
-def ipa_to_bin(phonology, cons) -> list[int]:
+def ipa_to_bin(phonology: list[str], cons: bool) -> list[int]:
     corresp_dict = {}
     if cons:
         with open("../data/consCorrespondences.json", "r", encoding="utf-8") as f:
