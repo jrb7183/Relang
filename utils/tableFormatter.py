@@ -5,6 +5,9 @@ def table_formatter(cons_list: list[tuple]) -> dict[str, list]:
     label_row = ["" for _ in range(11)]
     order_list = [[] for _ in range(11)]
     
+    # Sort by laryngeal features
+    cons_list.sort(key=lambda cons_tup: cons_tup[1] & (7 << 5))
+
     # Sort by place
     for cons_tup in cons_list:
         
