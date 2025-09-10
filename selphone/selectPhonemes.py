@@ -61,6 +61,10 @@ def select_consonants(consonants: DataFrame, probs: dict, num_phonemes: int) -> 
 
             # Place of Articulation
             sel_place = select_feature(0, probs, loop_count, curr_permit)
+            if sel_place == -1:
+                print(sel_place, sel_phonemes)
+                return sel_phonemes
+
             phoneme_bin += sel_place
             curr_permit = curr_permit[sel_place]
 

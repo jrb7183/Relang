@@ -123,5 +123,9 @@ def manner_criteria(curr_manners: list[int], sel_phonemes: list[list]) -> list[i
                     
                     case _ if manners[512] > 6:
                         return [512]
+                    
+        case 7: # Permit alveolar fricatives solely for lateral fricatives
+            if sel_phonemes[-1][0] == "l":
+                return [1024]
 
     return []
