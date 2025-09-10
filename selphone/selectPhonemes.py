@@ -20,6 +20,7 @@ def select_consonants(consonants: DataFrame, probs: dict, num_phonemes: int) -> 
     loop_count = 0
     maxed_rhotics = False
     max_stops = num_phonemes * 3 // 4
+    allow_lat_frics = False
 
     while len(sel_phonemes) < num_phonemes:
         curr_permit = remove_selected(permit_phones, sel_phonemes, num_phonemes, max_stops)
@@ -60,6 +61,10 @@ def select_consonants(consonants: DataFrame, probs: dict, num_phonemes: int) -> 
 
             # Place of Articulation
             sel_place = select_feature(0, probs, loop_count, curr_permit)
+            if sel_place == -1:
+                print(sel_place, sel_phonemes)
+                return sel_phonemes
+
             phoneme_bin += sel_place
             curr_permit = curr_permit[sel_place]
 
@@ -81,12 +86,13 @@ def select_consonants(consonants: DataFrame, probs: dict, num_phonemes: int) -> 
             manner = (phoneme_bin >> 8)
             if manner > 3 and manner != 6: # No lateral plosives, nasals, affricates, trills, or sibilants
                 if not (phoneme_bin % 4 == 0 or phoneme_bin % 32 == 25): # No Labial, Glottal or Pharyngeal laterals 
+                    if sel_manner != 1024 or (allow_lat_frics or sel_place == 10):
 
-                    laterality = probs["Laterality"]
-                    sel_num = random.random()
+                        laterality = probs["Laterality"]
+                        sel_num = random.random()
 
-                    if sel_num >= laterality[0][1]:
-                        phoneme_bin += laterality[1][0]
+                        if sel_num >= laterality[0][1]:
+                            phoneme_bin += laterality[1][0]
         
             # Filter out rhotics if max has been met
             if maxed_rhotics and is_rhotic(phoneme_bin):
